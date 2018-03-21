@@ -1,0 +1,72 @@
+﻿<header class="main-header">
+    <input type="hidden" id="signMassage" value="<%= __('SIGN_IN_REQUIRED') %>" />
+    <!-- Logo -->
+    <a href="/list" class="logo">
+        <span class="logo-mini"></span>
+        <span class="logo-lg"></span>
+    </a>
+
+    <nav class="navbar navbar-static-top">
+        <!-- Sidebar toggle button-->
+        <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button"><span class="sr-only">Toggle navigation</span> </a>
+
+        <div class="navbar-custom-menu">
+        <ul class="nav navbar-nav">
+        <li style="width:100px; padding-right: 10px;">
+            <select class="" id="selectLang" name="selectLang" style="width:90%; height: 25px; margin: 5px 10px 0 0; font-size: 1em; font-weight: bold;">
+                    <%
+                        if(languageNow == 'ko') {
+                    %>
+                        <option value="ko" selected="selected"><%= __('KOREAN') %></option>
+                        <option value="en"><%= __('ENGLISH') %></option>
+                    <%
+                        } else {
+                    %>
+                        <option value="ko"><%= __('KOREAN') %></option>
+                        <option value="en" selected="selected"><%= __('ENGLISH') %></option>
+                    <%
+                        }
+                    %>
+            </select>
+        </li>
+        <% 
+            if(sid) { 
+        %>
+            <li class="user_id"> <strong><%=sid%></strong> <%= __('SIR') %></li>
+            <% 
+                if(sid==="admin") { 
+            %>
+                <li class="btn_set01"> <a href="/users/userMng" class="left_set"></a></li>
+            <%
+                }
+            %>
+            <li><a  href="/users/logout" class="btn_log_out" style="margin-left: 5px;"> <%= __('SIGN_OUT') %></a></li>
+        
+        <%                  
+            }
+        <!-- 비로그인 접근 시 로그인 화면으로 이동-->
+            else
+            {
+        %>
+                <script>
+                    alert($('#signMassage').val());
+                    location.href = '/';
+                </script>
+        <%
+            }
+        %>
+        </ul>
+        </div>
+    </nav>
+</header>
+
+
+<script>
+    $(document).ready(function () {
+
+        $('#selectLang').change(function() {
+            location.href="/index/lang"
+        });
+    });
+
+</script>

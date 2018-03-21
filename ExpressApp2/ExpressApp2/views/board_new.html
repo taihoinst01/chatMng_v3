@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title></title>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<link rel="stylesheet" href="/common/css/bootstrap.min.css">
+<link rel="stylesheet" href="/common/css/font-awesome.min.css">
+<link rel="stylesheet" href="/common/css/AdminLTE.min.css">
+<link rel="stylesheet" href="/common/css/skin-blue.min.css">
+<link rel="stylesheet" href="/common/css/default.css">
+<link rel="stylesheet" href="/common/css/daterangepicker.css">
+<link rel="stylesheet" href="/common/css/bootstrap-datepicker.min.css">
+<link rel="stylesheet" href="/common/css/morris.css">
+<link rel="stylesheet" href="/common/css/slider.css">
+<!--[if lt IE 9]>
+<script src="common/js/html5shiv.min.js"></script>
+<script src="common/js/1.4.2/respond.min.js"></script>
+<![endif]-->
+<script src="/common/js/jquery.min.js"></script>
+<script src="/common/js/bootstrap.min.js"></script>
+<script src="/common/js/select2.full.min.js"></script>
+<script src="/common/js/jquery.inputmask.js"></script>
+<script src="/common/js/jquery.inputmask.date.extensions.js"></script>
+<script src="/common/js/jquery.inputmask.extensions.js"></script>
+<script src="/common/js/moment.min.js"></script>
+<script src="/common/js/daterangepicker.js"></script>
+<script src="/common/js/bootstrap-datepicker.min.js"></script>
+<script src="/common/js/adminlte.min.js"></script>
+<script src="/common/js/jquery-2.2.4.min.js"  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+<script src="/common/js/icheck.min.js"></script>
+<script src="/common/js/raphael.min.js"></script>
+<script src="/common/js/morris.min.js"></script>
+<script src="/common/js/bootstrap-slider.js"></script>
+
+<script type="text/javascript" src="/js/common/board_new.js"></script>
+<script>
+  $(function () {
+    /* BOOTSTRAP SLIDER */
+    $('.slider').slider()
+  })
+</script>
+
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+
+      <!-- Header -->
+      <%include  ./header.html%>
+      <!-- //Header -->
+
+      <!-- Left Menu Side -->
+      <%include  ./leftSideBar.html%>
+      <!--// Left Menu Side -->
+
+      <!-- Content Wrapper -->
+      <div class="content-wrapper">
+                        <section class="content-header"><h1><%= __('DASHBOARD') %> </h1>  </section>
+    
+                        <!-- Main content -->
+                        <section class="content">
+                                
+                                <!-- content 01 -->
+                                <div class="box  color-palette-box">
+                                        <div class="box-body">
+                                                  <div class="col-lg-3 form-group ">
+                                                        <label><%= __('viewsperiods') %></label>
+                                                        <div class="input-group">
+                                                          <div class="input-group-addon">
+                                                             <i class="fa fa-calendar"></i>
+                                                          </div>
+                                                           <input type="text" class="form-control pull-right" id="reservation"><br/>
+                                                        </div>
+                                                    <!-- 슬라이드 기능 미구현 -->
+                                                    <!--
+                                                        <div class="slider_wrap">
+                                                              <input type="text" value="" class="slider form-control" data-slider-min="-200" data-slider-max="200"
+                                                                     data-slider-step="5" data-slider-value="[-100,100]" data-slider-orientation="horizontal"
+                                                                     data-slider-selection="before" data-slider-tooltip="hide" data-slider-id="blue" >    
+                                                        </div> 
+                                                    -->
+                                                </div>
+                                                  <div class="col-lg-3 form-group ">
+                                                        <label><%= __('datetype') %></label>
+                                                        <select class="form-control" id="selDate" name="selDate" > 
+                                                            <option value="allDay"><%= __('allDates') %></option>
+                                                            <option value="today"><%= __('day') %></option>
+                                                        </select>
+                                                    </div> 
+                                                  <div class="col-lg-3 form-group ">
+                                                        <label><%= __('channel') %></label>
+                                                        <select class="form-control" id="selChannel" name="selChannel" > 
+                                                            <option value="all"><%= __('All') %></option>
+                                                            <% if (sid) {
+                                                                if (channelList) { 
+                                                                    for (var i=0; i <channelList.length; i++) { %>
+                                                                        <option value="<%=channelList[i].CHANNEL%>"><%=channelList[i].CHANNEL%></option>
+                                                            <%      } 
+                                                                } else { %>
+                                                                
+                                                            <% }  } %>
+                                                        </select>
+                                                   </div> 
+                                                   <div class="col-lg-3 form-group fr mt50 txt_right ">                                                   
+                                                    <button type="button" class="btn btn_01 " id="searchBoardBtn" ><%= __('lookup') %></button> 
+                                                   </div>
+                                        </div>
+                                </div>
+                                <!-- content 02 -->
+                                <div class="row">
+                                                 <div  class="col-lg-2">
+                                                             <div class="small-box color_01">
+                                                                    <div class="inner"><h3 id="allCustomer">Loading..</h3></div>
+                                                                    <a href="#" class="small-box-footer"><%= __('Cumulative_counselor_count') %> </a>
+                                                             </div>
+                                                 </div>
+                                                 <div  class="col-lg-2">
+                                                             <div class="small-box color_02">
+                                                                    <div class="inner"><h3 id="avgReplySpeed">Loading..</h3></div>
+                                                                    <a href="#" class="small-box-footer"><%= __('Average_response_speed') %> </a>
+                                                             </div>
+                                                 </div>  
+                                                 <div  class="col-lg-2">
+                                                             <div class="small-box color_03">
+                                                                    <div class="inner"><h3 id="avgQueryCnt">Loading..</h3></div>
+                                                                    <a href="#" class="small-box-footer"><%= __('Average_number_of_customer_questions') %> </a>
+                                                             </div>
+                                                 </div>
+                                                 <div  class="col-lg-2">
+                                                             <div class="small-box color_04">
+                                                                    <div class="inner"><h3 id="avgCorrectAnswer">Loading..</h3></div>
+                                                                    <a href="#" class="small-box-footer"><%= __('Average_normal_response_rate') %></a>
+                                                             </div>
+                                                 </div> 
+                                                 <div  class="col-lg-2">
+                                                             <div class="small-box color_05">
+                                                                    <div class="inner"><h3 id="avgReply">Loading..</h3></div>
+                                                                    <a href="#" class="small-box-footer"><%= __('Search_response_rate') %></a>
+                                                             </div>
+                                                 </div>
+                                                 <div  class="col-lg-2">
+                                                             <div class="small-box color_06">
+                                                                    <div class="inner"><h3 id="maxQueryCnt">Loading..</h3></div>
+                                                                    <a href="#" class="small-box-footer"><%= __('Maximum_Number_of_Customer_Questions') %></a>
+                                                             </div>
+                                                 </div>                                      
+                                </div>
+                                <!-- content 03 -->
+                                <div class="row">
+                                       <section class="col-lg-5">
+                                           <div class="box  color-palette-box">
+                                                <div class="box-body">
+                                                               <div class="box-header with-border dashb"><h3 class="box-title02"><%= __('INTENT_SCROE_AVG_MIN_MAX') %></h3></div> 
+                                                               <div class="Tbl_wrap">
+                                                                    <table class="Tbl" summary="INTENT SCORE 평균/최소/최대">
+                                                                        <colgroup><col width="20%"/><col width="20%"/><col width="20%"/><col width="20%"/><col width="20%"/></colgroup>
+                                                                        
+                                                                        <thead>
+                                                                              <tr>
+                                                                                  <th><%= __('Intent_name') %></th>
+                                                                                  <th><%= __('Number') %></th>
+                                                                                  <th><%= __('average') %></th>
+                                                                                  <th><%= __('minimum') %></th>
+                                                                                  <th><%= __('maximum') %></th>
+                                                                              </tr>
+                                                                        </thead>
+                                                                        <tbody id="scoreTableBody">
+                                                                                                                                                    
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div class="pagination_wrap" id="scoreTablePaging">
+                                                                        <ul class="pagination pagination-sm no-margin">
+                                            
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>                                                 
+                                                </div>
+                                           </div>
+                                       </section>
+                                       <section class="col-lg-7">
+                                           <div class="box  color-palette-box">
+                                                <div class="box-body">
+                                                               <div class="box-header with-border dashb"><h3 class="box-title02"><%= __('Answers_to_Frequently_Asked_Questions') %></h3></div> 
+                                                               <div class="Tbl_wrap">
+                                                                    <table class="Tbl" summary="자주 묻는 질문에 대한 답변 top 10">
+                                                                        <colgroup><col width="2%"/><col width="15%"/><col width="35%"/><col width="8%"/><col width="5%"/></colgroup>
+                                                                        <thead>
+                                                                              <tr>
+                                                                                  <th> </th>
+                                                                                  <th><%= __('Intent_name') %> </th>
+                                                                                  <th><%= __('HangulQuestion') %></th>
+                                                                                  <th><%= __('channel') %></th>
+                                                                                  <th><%= __('QuestionCount') %></th>
+                                                                              </tr>
+                                                                        </thead>
+                                                                        <tbody id="OftQuestionTableBody">
+                                                                                                                                                    
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>                                                  
+                                                </div>
+                                           </div>
+                                       </section>                                       
+                                </div>
+                                <!-- content 04 -->
+                                <div class="box  color-palette-box">
+                                <canvas id="areaChart" style="height:0"></canvas>
+                                                <div class="box-body">
+                                                               <div class="box-header with-border dashb"><h3 class="box-title02"><%= __('RESPONSE_AVG_MAX_MIN_STAYTIME') %></h3></div> 
+                                                                <div class="chart-responsive">
+                                                                  <div class="chart" id="responseTimeDiv" style="height: 300px;"></div>
+                                                                </div>                                                
+                                                </div>
+                                                
+                                                
+                                </div>                                    
+                                <!-- content 05 -->
+                                <div class="box  color-palette-box">
+                                                <div class="box-body">
+                                                               <div class="box-header with-border dashb"><h3 class="box-title02"><%= __('QUESTION_CNT_EACH_HOUR') %></h3></div>                                                 
+                                                                <div class="chart-responsive">
+                                                                  <div class="chart" id="timeOfDay_div" style="height: 300px;"></div>
+                                                                </div>                                                 
+                                                </div>
+                                </div>                                 
+                                <!-- content 06 -->
+                                <div class="box  color-palette-box">
+                                                <div class="box-body">
+                                                               <div class="box-header with-border dashb"><h3 class="box-title02"><%= __('Unanswered_questions') %></h3></div> 
+                                                               <div class="Tbl_wrap">
+                                                                    <table class="Tbl" summary="자주 묻는 질문에 대한 답변 top 10">
+                                                                        <colgroup><col width="10%"/><col width="25%"/><col width="5%"/><col width="3%"/>
+                                                                                  <col width="15%"/><col width="5%"/><col width="10%"/><col width="10%"/><col width="10%"/>
+                                                                        </colgroup>
+                                                                        <thead>
+                                                                              <tr>
+                                                                                  <th><%= __('Intent_name') %></th>
+                                                                                  <th><%= __('HangulQuestion') %></th>
+                                                                                  <th><%= __('channel') %></th>
+                                                                                  <th><%= __('QuestionCount') %></th>
+                                                                                  <th><%= __('Date') %></th>
+                                                                                  <th><%= __('Result') %></th>
+                                                                                  <th><%= __('TEXT_response') %></th>
+                                                                                  <th><%= __('CARD_response') %></th>
+                                                                                  <th><%= __('CARDBTN_response') %>	</th>                                                                                  
+                                                                              </tr>                                                             
+                                                                        </thead>
+                                                                        <tbody id="noneQueryDiv">
+
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div class="pagination_wrap" id="noneQueryDivTablePaging">
+                                                                        <ul class="pagination pagination-sm no-margin">
+                                            
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>                                                  
+                                                </div>
+                                </div>                                                                 
+                                <!-- content 07 -->
+                                <div class="row">
+                                       <section class="col-lg-4">
+                                           <div class="box  color-palette-box">
+                                                <div class="box-body">
+                                                               <div class="box-header with-border dashb"><h3 class="box-title02"><%= __('Customer_First_Questions') %></h3></div>                                                 
+                                                                <div class="chart-responsive">
+                                                                  <div class="chart" id="fistQueryDiv" style="height:300px;" ></div>
+                                                                </div>                                                  
+                                                </div>
+                                           </div>
+                                       </section>
+                                       <section class="col-lg-8">
+                                           <div class="box  color-palette-box">
+                                                <div class="box-body">
+                                                               <div class="Tbl_wrap">
+                                                                    <table class="Tbl" summary="">
+                                                                        <colgroup><col width="10%"/><col width="30%"/><col width="5%"/><col width="3%"/><col width="15%"/><col width="5%"/><col width="5%"/></colgroup>
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th><%= __('Intent_name') %></th>
+                                                                                <th><%= __('HangulQuestion') %></th>
+                                                                                <th><%= __('channel') %></th>
+                                                                                <th><%= __('QuestionCount') %></th>
+                                                                                <th><%= __('Date') %></th>
+                                                                                <th><%= __('Type') %></th>
+                                                                                <th><%= __('Result') %></th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="fistQueryTable">
+                                                                              
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div class="pagination_wrap" id="fistQueryTablePaging">
+                                                                        <ul class="pagination pagination-sm no-margin">
+                                            
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>                                                   
+                                              </div>
+                                       </section>                                       
+                                </div>                                
+                                
+                                
+                                
+                        </section>
+                        <!-- //Main content -->
+        
+    </div>
+    <!-- // Content Wrapper -->
+    
+              
+    <!--  Footer -->
+    <%include  ./footer.html%>
+    <!-- // Footer -->
+
+<script>
+  /*
+  $(function () {
+    "use strict";
+
+    //BAR CHART
+    var bar = new Morris.Bar({
+      element: 'bar-chart',
+      resize: true,
+      data: [
+        {y: '2006', a: 100, b: 90},
+        {y: '2007', a: 75, b: 65},
+        {y: '2008', a: 50, b: 40},
+        {y: '2009', a: 75, b: 65},
+        {y: '2010', a: 50, b: 40},
+        {y: '2011', a: 75, b: 65},
+        {y: '2012', a: 100, b: 90}
+      ],
+      barColors: ['#5181ae', '#ff7659'],
+      xkey: 'y',
+      ykeys: ['a', 'b'],
+      labels: ['CPU', 'DISK'],
+      hideHover: 'auto'
+    });
+  });
+  
+ //BAR CHART
+    var bar = new Morris.Bar({
+      element: 'bar-chart2',
+      resize: true,
+      data: [
+        {y: '2006', a: 100, b: 90},
+        {y: '2007', a: 75, b: 65},
+        {y: '2008', a: 50, b: 40},
+        {y: '2009', a: 75, b: 65},
+        {y: '2010', a: 50, b: 40},
+        {y: '2011', a: 75, b: 65},
+        {y: '2012', a: 100, b: 90}
+      ],
+      barColors: ['#5181ae', '#ff7659'],
+      xkey: 'y',
+      ykeys: ['a', 'b'],
+      labels: ['CPU', 'DISK'],
+      hideHover: 'auto'
+    });
+	
+	
+ //BAR CHART
+    var bar = new Morris.Bar({
+      element: 'bar-chart3',
+      resize: true,
+      data: [
+        {x: 'intent1', a: 100, b: 90},
+        {x: 'intent1', a: 75, b: 65},
+        {x: 'intent1', a: 50, b: 40},
+        {x: 'intent1', a: 75, b: 65},
+        {x: 'intent1', a: 50, b: 40},
+
+      ],
+      barColors: ['#5181ae', '#ff7659'],
+      xkey: 'x',
+      ykeys: ['a', 'b'],
+      labels: ['CPU', 'DISK'],
+      hideHover: 'auto'
+    });	
+    */
+</script>
+     
+
+   
+    
+<script>
+  //iCheck for checkbox and radio inputs
+    $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+      checkboxClass: 'icheckbox_minimal-blue',
+      radioClass   : 'iradio_minimal-blue'
+    })
+    //Red color scheme for iCheck
+    $('input[type="checkbox"].minimal-red, input[type="radio"].minimal-red').iCheck({
+      checkboxClass: 'icheckbox_minimal-red',
+      radioClass   : 'iradio_minimal-red'
+    })
+    //Flat red color scheme for iCheck
+    $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
+      checkboxClass: 'icheckbox_flat-green',
+      radioClass   : 'iradio_flat-green'
+    })
+
+</script>
+</body>
+</html>

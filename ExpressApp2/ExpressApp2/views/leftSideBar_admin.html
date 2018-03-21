@@ -1,0 +1,64 @@
+<aside class="main-sidebar">
+    <section class="sidebar">
+        <div class="sidebar-form">ChatBot</div>
+        <!-- chat bot list -->
+        <div class="sidebar-form se02">
+                      
+                      <ul class="dropdown">
+                          <li class="dropdown tasks-menu" >
+                            <a class="admin_mtit"><%= __('ADMIN_SETTING') %></a>
+                          </li>
+                      </ul>
+      </div> 
+      <!-- //chat bot list -->  
+
+      <!-- left Menu -->
+      <ul class="sidebar-menu" data-widget="tree">
+            <li class="header">Menu</li>
+            <li class="treeview" id="userMngClick"> <a href="/users/userMng"><i class="fa fa-edit"></i> <span><%= __('USER_MNG') %></span></a> </li>
+            <li class="treeview" id="userAugthClick"> <a href="/users/userAuthMng"><i class="fa fa-lock"></i> <span><%= __('USER_AUTH_MNG') %></span></a> </li>
+            <li class="treeview" id="chatAugthClick"> <a href="/users/chatBotMng"><i class="fa fa-lock"></i> <span><%= __('CHATBOT_MNG') %></span></a> </li>
+            <!-- 추후 사용 예정 -->
+            <!-- <li class="treeview" id="apiMngClick"> <a href="/users/apiSetting"><i class="fa  fa-file-text-o"></i> <span><%= __('API_MNG') %></span></a> </li> -->
+      </ul>
+      <!-- // left Menu -->
+                              
+    </section>
+</aside>
+
+<script>
+    $(window).on('load', function() {
+
+        $('.treeview').find('i').each(function() {
+            var menuName = $.trim( $(this).parent().text() ).replace(/ /gi, ""); 
+            var pageTitle = $.trim( $('.content-header').text() ).replace(/ /gi, ""); 
+            if (menuName === pageTitle) {
+                $(this).parents('li').addClass('active');
+            }
+        });
+    });
+
+    $(document).ready(function(){
+
+        $('#userMngClick').click(function() {
+            var url = "/users/userMng"; 
+            $(location).attr('href',url);
+        });
+
+        $('#userAugthClick').click(function() {
+            var url = "/users/userAuthMng"; 
+            $(location).attr('href',url);
+        });
+        
+        $('#chatAugthClick').click(function() {
+            var url = "/users/chatBotMng"; 
+            $(location).attr('href',url);
+        });
+
+        $('#apiMngClick').click(function() {
+            var url = "/users/apiSetting"; 
+            $(location).attr('href',url);
+        });
+    });
+
+  </script>
