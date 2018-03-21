@@ -3,7 +3,7 @@ var dbConfig = {
     user: 'taihoinst',
     password: 'taiho9788!',
     server: 'taiholab.database.windows.net',
-    database: 'chatMng',
+    database: 'chatMngV3',
     connectionTimeout : 30000,
     requestTimeout : 30000,
     options: {
