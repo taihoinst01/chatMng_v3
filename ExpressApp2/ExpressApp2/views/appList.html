@@ -62,7 +62,7 @@
                                                          <div class="box">
                                                                <div class=" box_chatlist_h <%=list[i].APP_COLOR %>"><span class="lan"> <%= list[i].CULTURE %></span></div>
                                                                <div class="box-body tc">
-                                                                     <a href="/board?appName=<%= list[i].CHATBOT_NAME %>" class="title"><%= list[i].CHATBOT_NAME %>
+                                                                     <a href="/board?appName=<%= encodeURI(list[i].CHATBOT_NAME) %>" class="title"><%= list[i].CHATBOT_NAME %>
                                                                          <span><%= list[i].DESCRIPTION %></span>
                                                                      </a>
                                                                </div>

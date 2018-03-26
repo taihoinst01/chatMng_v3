@@ -39,7 +39,7 @@
                                                             for(var i=0; i<leftList.length; i++) {
                                                         %>
                                                              <!--row -->
-                                                             <a href="/board?appName=<%= leftList[i].CHATBOT_NAME %>" class="circle_col"><li><span class="pull-left image img-circle_s <%=leftList[i].APP_COLOR %>"> </span><span class="tex01"><%= leftList[i].CHATBOT_NAME %></span> </li></a>
+                                                             <a href="/board?appName=<%= encodeURI(leftList[i].CHATBOT_NAME) %>" class="circle_col"><li><span class="pull-left image img-circle_s <%=leftList[i].APP_COLOR %>"> </span><span class="tex01"><%= leftList[i].CHATBOT_NAME %></span> </li></a>
                                                         <%
                                                             }   
                                                         } else {
