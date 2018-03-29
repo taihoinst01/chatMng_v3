@@ -484,7 +484,7 @@ router.post('/searchIptDlg', function (req, res) {
                                      "      a.DLG_ID AS DLG_ID, " +
                                      "      COUNT('1') OVER(PARTITION BY '1') AS TOTCNT, "  +
                                      "      CEILING((ROW_NUMBER() OVER(ORDER BY LUIS_ENTITIES DESC))/ convert(numeric ,10)) PAGEIDX, " +
-                                     "      DLG_DESCRIPTION, DLG_API_DEFINE ,LUIS_ENTITIES, GroupS " +
+                                     "      DLG_DESCRIPTION, DLG_API_DEFINE ,LUIS_ENTITIES, LUIS_INTENT, GroupS " +
                                      "  FROM TBL_DLG a, TBL_DLG_RELATION_LUIS b where a.DLG_ID = b.DLG_ID ";
                   
                 dlg_desQueryString+= "  and LUIS_ENTITIES like '%" + searchText + "%' ";
@@ -568,7 +568,7 @@ router.post('/dialogs2', function (req, res) {
                                      "  a.DLG_ID AS DLG_ID, \n" +
                                      "  COUNT('1') OVER(PARTITION BY '1') AS TOTCNT, \n"  +
                                      "  CEILING((ROW_NUMBER() OVER(ORDER BY LUIS_ENTITIES DESC))/ convert(numeric ,10)) PAGEIDX, \n" +
-                                     "  DLG_DESCRIPTION, DLG_API_DEFINE ,LUIS_ENTITIES, GroupL, GroupM, GroupS \n" +
+                                     "  DLG_DESCRIPTION, DLG_API_DEFINE ,LUIS_ENTITIES, LUIS_INTENT, GroupL, GroupM, GroupS \n" +
                                      "  from TBL_DLG a, TBL_DLG_RELATION_LUIS b where a.DLG_ID = b.DLG_ID \n";
                     if (req.body.searchText && !req.body.upperGroupL) {
                         dlg_desQueryString += "AND b.LUIS_ENTITIES like '%" + req.body.searchText + "%' \n";
@@ -670,7 +670,7 @@ router.post('/dialogs', function (req, res) {
                                      "      a.DLG_ID AS DLG_ID, \n" +
                                      "COUNT('1') OVER(PARTITION BY '1') AS TOTCNT, \n"  +
                                      "CEILING((ROW_NUMBER() OVER(ORDER BY LUIS_ENTITIES DESC))/ convert(numeric ,10)) PAGEIDX, \n" +
-                                     "DLG_DESCRIPTION, DLG_API_DEFINE ,LUIS_ENTITIES, GroupL, GroupM, GroupS \n" +
+                                     "DLG_DESCRIPTION, DLG_API_DEFINE ,LUIS_ENTITIES, LUIS_INTENT, GroupL, GroupM, GroupS \n" +
                                      "FROM TBL_DLG a, TBL_DLG_RELATION_LUIS b \n" + 
                                      "WHERE a.DLG_ID = b.DLG_ID \n";
             if (req.body.searchTxt !== '') {
@@ -2906,7 +2906,110 @@ router.post('/selectApiGroup', function (req, res) {
     
 });
 
+//의도예측 을 위한 select box data
+router.post('/predictIntentAjax', function (req, res) {
+    
+    var iptUtterance = req.body['iptUtterance[]'];
+    var request = require('request');
+    var querystring = require('querystring');
+    var appId;
 
+    var selectAppIdQuery = "SELECT CHATBOT_ID, APP_ID, VERSION, APP_NAME,CULTURE, SUBSC_KEY \n";
+    selectAppIdQuery += "FROM TBL_LUIS_APP \n";
+    selectAppIdQuery += "WHERE CHATBOT_ID = (SELECT CHATBOT_NUM FROM TBL_CHATBOT_APP WHERE CHATBOT_NAME='"+req.session.appName+"')\n";
+
+    (async () => {
+        try {
+        
+        let pool = await dbConnect.getConnection(sql);
+        let selectAppId = await pool.request()
+            .query(selectAppIdQuery);
+
+        for(var i = 0; i < selectAppId.recordset.length; i++) {
+            appId = selectAppId.recordset[i].APP_ID;
+        } 
+            
+        var endPoint = HOST + "/luis/v2.0/apps/";
+        //appId = "f267fc99-9bf5-4488-810e-3fa8f913662a";
+        //appId = "edeaa7f1-cd60-4cbb-aa9d-ec4fe127395b;
+        
+        var queryParams = {
+            "subscription-key": req.session.subsKey,
+            "timezoneOffset": "0",
+            "verbose":  true,
+            "q": iptUtterance
+        }
+
+        var options = {
+            headers: {
+                'Ocp-Apim-Subscription-Key': req.session.subsKey
+            }
+        };
+
+        //var luisRequest = endPoint + appId +'?' + querystring.stringify(queryParams);
+        var luisRequest = syncClient.get(endPoint + appId +'?' + querystring.stringify(queryParams) , options);
+        var return_data = JSON.stringify(luisRequest.body.intents)
+        console.log("return_data==="+return_data);
+        //res.send(return_data);
+        res.send({status:200});
+        /*
+        request(luisRequest, function (err, response, body) {
+                if (err)
+                    console.log(err);
+                else {
+                    var data = JSON.parse(body);
+                   
+
+                    console.log(`Query: ${data.query}`);
+                    console.log(`Top Intent: ${data.topScoringIntent.intent}`);
+                    console.log('Entities:');
+                    console.log(data.entities);
+                    
+                }
+            });
+        */
+        } catch (error) {
+            console.log(error);
+        }finally{
+            sql.close();
+        }
+        
+    })()
+    
+    sql.on('error', err => {
+    })
+    /*
+    console.log(`appId======`+appId);
+    var endPoint = HOST + "/luis/v2.0/apps/";
+    //var appId = "f267fc99-9bf5-4488-810e-3fa8f913662a";
+    
+    var queryParams = {
+        "subscription-key": req.session.subsKey,
+        "timezoneOffset": "0",
+        "verbose":  true,
+        "q": iptUtterance
+    }
+
+    var luisRequest = endPoint + appId +'?' + querystring.stringify(queryParams);
+    console.log(`luisRequest======`+luisRequest);
+
+    request(luisRequest,
+        function (err,
+            response, body) {
+            if (err)
+                console.log(err);
+            else {
+                var data = JSON.parse(body);
+
+                console.log(`Query: ${data.query}`);
+                console.log(`Top Intent: ${data.topScoringIntent.intent}`);
+                console.log('Entities:');
+                console.log(data.entities);
+            }
+        });
+        */
+
+});
 
 
 module.exports = router;

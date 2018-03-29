@@ -307,6 +307,7 @@ $(document).ready(function(){
                 return false;
             }
             utterInput(queryText);
+            predictIntent(queryText);//의도예측 추가
 
             $("input[name=iptUtterance]").attr("readonly",false);
         }
@@ -2380,6 +2381,33 @@ function getGroupSeelectBox() {
 
         }
     });
+}
+
+/*
+* 의도예측 select box 추가
+*/
+function predictIntent(queryText){
+    console.log("start11111111===");
+    var queryTextArr = [];
+    if (typeof queryText === 'string') {
+        queryTextArr[0] = queryText;
+    } else {  //'object'
+        queryTextArr = queryText.reverse();
+    }
+    console.log("start===");
+    $.ajax({
+        url: '/learning/predictIntentAjax',                //주소
+        dataType: 'json',                  //데이터 형식
+        type: 'POST',                      //전송 타입
+        data: {'iptUtterance': queryTextArr},      //데이터를 json 형식, 객체형식으로 전송
+
+        success: function(data){
+            console.log("success");
+        },
+        error: function(error){
+            console.log("fail===");
+        }//-------function end
+    }); //-------------ajax end
 }
 
 /*
