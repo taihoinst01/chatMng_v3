@@ -53,7 +53,7 @@ var language;
           autoclose: true,
           maxDate: new Date()
         })
-    
+        /*
         //iCheck for checkbox and radio inputs
         $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
           checkboxClass: 'icheckbox_minimal-blue',
@@ -69,7 +69,8 @@ var language;
           checkboxClass: 'icheckbox_flat-green',
           radioClass   : 'iradio_flat-green'
         })
-    
+        */
+       
         //Colorpicker
         $('.my-colorpicker1').colorpicker()
         //color picker with addon

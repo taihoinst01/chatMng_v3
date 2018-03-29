@@ -57,7 +57,7 @@
                                             <th><%= __('Entity definition') %></th>
                                             <th><%= __('Entity value') %></th>
                                             <th>API_GROUP</th>
-                                            <!--<th></th>-->
+                                            <th></th>
                                         </tr>
                                         <tbody id="entitiesTbltbody">
                                         </tbody>
@@ -71,7 +71,10 @@
             </div>
     </section>
     <!-- //Main content -->
-
+<!-- 로딩바 -->
+<div class="modal fade" id="loadingBar" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="myModalLabel" aria-hidden="true" >
+    <img src="/image/ajax_loader.gif" style="width:50px; height:50px;" id="loadingImg">
+</div>
 
 </div>
 <!-- //Content Wrapper  -->
@@ -124,7 +127,9 @@
 	</div>    
     <!-- //팝업_신규단어생성 -->
 
-
+    <div class="modal fade" id="loadingBar" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="myModalLabel" aria-hidden="true" style="z-index: 1055;" >
+        <img src="/image/ajax_loader.gif" style="width:50px; height:50px;z-index: 1056;" id="loadingImg">
+    </div>
 
 
     <!-- 팝업_단어수정 -->

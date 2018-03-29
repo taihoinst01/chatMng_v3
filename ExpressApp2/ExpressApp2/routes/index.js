@@ -419,6 +419,7 @@ router.post('/admin/renameApp', function (req, res){
     
 });
 
+/*
 router.post('/admin/trainApp', function (req, res){
     var appId = req.session.appId;
     var appName = req.session.appName;
@@ -494,7 +495,7 @@ router.post('/admin/trainApp', function (req, res){
                     // luis intent count check
                     var intentCountRes = syncClient.get(HOST + '/luis/api/v2.0/apps/' + useLuisAppId + '/versions/0.1/examples?take=500' , options);
 
-                    if( entityListResult.body.length <= 28 && intentCountRes.body.length <= 280 ) {
+                    if( entityListResult.body.length <= 28 && intentCountRes.body.length < 280 ) {
                         var entityId = entityListResult.body[entityListResult.body.length-1].id;
 
                         // luis hierarchicalentities count check
@@ -513,7 +514,7 @@ router.post('/admin/trainApp', function (req, res){
                             var entityListResult = syncClient.post(HOST + '/luis/api/v2.0/apps/' + useLuisAppId + '/versions/0.1/hierarchicalentities', options);
                         }
                         
-                        if( intentCountRes.body.length <= 280 ) {
+                        if( intentCountRes.body.length < 280 ) {
                             //get entity name
                             var getEntityName = syncClient.get(HOST + '/luis/api/v2.0/apps/' + useLuisAppId + '/versions/0.1/hierarchicalentities?take=500' , options);
                             var addEntity;
@@ -622,6 +623,101 @@ router.post('/admin/trainApp', function (req, res){
             sql.close();
         }
     })()
+});
+
+*/
+
+router.post('/admin/trainApp', function (req, res){
+    var appId = req.session.appId;
+    var appName = req.session.appName;
+    var subsKey = req.session.subsKey;
+    var versionId;
+    var entityArray = [];
+    
+    var client = new Client();
+    
+    var options = {
+        headers: {
+            'Ocp-Apim-Subscription-Key': subsKey
+        }
+    };
+
+    var selectAppIdQuery = "SELECT CHATBOT_ID, APP_ID, VERSION, APP_NAME,CULTURE, SUBSC_KEY \n";
+    selectAppIdQuery += "FROM TBL_LUIS_APP \n";
+    selectAppIdQuery += "WHERE CHATBOT_ID = (SELECT CHATBOT_NUM FROM TBL_CHATBOT_APP WHERE CHATBOT_NAME=@chatName)\n";
+
+    (async () => {
+        try {
+
+            let pool = await dbConnect.getConnection(sql);
+            let selectAppId = await pool.request()
+                .input('chatName', sql.NVarChar, appName)
+                .query(selectAppIdQuery);
+
+            for(var i = 0 ; i < selectAppId.recordset.length; i++) {
+                var luisAppId = selectAppId.recordset[i].APP_ID;
+                //luis intent count check
+                var intentCountRes = syncClient.get(HOST + '/luis/api/v2.0/apps/' + luisAppId + '/versions/0.1/examples?take=500' , options);
+            }
+
+
+            var repeat = setInterval(function(){
+                var trainCount = 0;
+                var count = 0;
+
+                var pubOption = {
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': subsKey,
+                        'Content-Type':'application/json'
+                    },
+                    payload:{
+                        'versionId': '0.1',
+                        'isStaging': false,
+                        'region': 'westus'
+                    }
+                }
+
+                for(var i = 0; i < selectAppId.recordset.length; i++) {
+                    var luisAppId = selectAppId.recordset[i].APP_ID;
+
+                    var traninResultGet = syncClient.get(HOST + '/luis/api/v2.0/apps/' + luisAppId + '/versions/0.1/train' , options);
+                    for(var trNum = 0; trNum < traninResultGet.body.length; trNum++) {
+                        if(traninResultGet.body[trNum].details.status == "Fail") {
+                            res.send({result:400});
+                        }
+                        if(traninResultGet.body[trNum].details.status == "InProgress") {
+                            break;
+                        }
+                        count++;
+                    }
+
+                    trainCount = trainCount + traninResultGet.body.length;
+
+                    console.log("trainResult : " + traninResultGet);
+                }
+
+                if(count != 0 && trainCount == count) {
+                    for(var i = 0; i < selectAppId.recordset.length; i++) {
+                        var luisAppId = selectAppId.recordset[i].APP_ID;
+                        var publishResult = syncClient.post(HOST + '/luis/api/v2.0/apps/' + luisAppId + '/publish' , pubOption);
+                        console.log("publishResult : " + publishResult);
+                    }
+
+                    clearInterval(repeat);
+
+                    res.send({result:200});
+                }
+            },1000);
+
+
+        } catch (err) {
+            console.log(err)
+            // ... error checks
+        } finally {
+            sql.close();
+        }
+    })()
+
 });
 
 //luis Train
