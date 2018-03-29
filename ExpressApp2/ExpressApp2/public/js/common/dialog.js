@@ -830,7 +830,8 @@ function searchIptDlg(page){
                             '<td>' + data.list[i].DLG_API_DEFINE +'</td>' +
                             '<td>' + data.list[i].GroupS +'</td>' +
                             '<td class="txt_left tex01"><a href="#"  data-toggle="modal" data-target="#myModal2"  onclick="searchDialog('+ data.list[i].DLG_ID +');return false;">' + data.list[i].DLG_DESCRIPTION + '</a></td>' +
-                            '<td>' + data.list[i].LUIS_ENTITIES +'</td>' +
+                            //'<td>' + data.list[i].LUIS_ENTITIES +'</td>' +
+                            '<td>' + data.list[i].LUIS_INTENT +'</td>' +
                             '<td><a href="#" onclick="deleteDialog('+ data.list[i].DLG_ID +');return false;"><span class="fa fa-trash"></span></a></td>' +
                             '</tr>';
                 }
@@ -1636,7 +1637,8 @@ function selectDlgByFilter(group){
                             '<td>' + data.list[i].DLG_API_DEFINE +'</td>' +
                             '<td>' + data.list[i].GroupS +'</td>' +
                             '<td class="txt_left tex01"><a href="#"  data-toggle="modal" data-target="#myModal2"   onclick="searchDialog('+ data.list[i].DLG_ID +');return false;">' + data.list[i].DLG_DESCRIPTION + '</a></td>' +
-                            '<td>' + data.list[i].LUIS_ENTITIES +'</td>' +
+                            //'<td>' + data.list[i].LUIS_ENTITIES +'</td>' +
+                            '<td>' + data.list[i].LUIS_INTENT +'</td>' +
                             '<td><a href="#" onclick="deleteDialog('+ data.list[i].DLG_ID +');return false;"><span class="fa fa-trash"></span></a></td>' +
                             '</tr>';
                 }
@@ -1945,7 +1947,8 @@ function selectDlgByTxt(groupType, sourceType){
                             '<td>' + data.list[i].DLG_API_DEFINE +'</td>' +
                             '<td>' + data.list[i].GroupS +'</td>' +
                             '<td class="txt_left tex01"><a href="#"  data-toggle="modal" data-target="#myModal2"  onclick="searchDialog('+ data.list[i].DLG_ID +');return false;">' + data.list[i].DLG_DESCRIPTION + '</a></td>' +
-                            '<td>' + data.list[i].LUIS_ENTITIES +'</td>' +
+                            //'<td>' + data.list[i].LUIS_ENTITIES +'</td>' +
+                            '<td>' + data.list[i].LUIS_INTENT +'</td>' +
                             '<td><a href="#" onclick="deleteDialog('+ data.list[i].DLG_ID +');return false;"><span class="fa fa-trash"></span></a></td>' +
                             '</tr>' ;
 
