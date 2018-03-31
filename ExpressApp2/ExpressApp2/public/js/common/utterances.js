@@ -101,6 +101,8 @@ $(document).on('click', '.utterDelete', function() {
 
     $('#dlgViewDiv').html("");
     $('input[name=tableAllChk]').parent().iCheck('uncheck');
+    //의도예측 데이터 삭제
+    $('select[name=predictIntent] :first-child').nextAll().remove();
 
     pagingFnc();
 
@@ -459,13 +461,15 @@ $(document).ready(function(){
 
                         var utterQuery = $('');
                         var luisId = $('#dlgViewDiv').find($('input[name=luisId]'))[0].value;
-                        var luisIntent = $('#dlgViewDiv').find($('input[name=luisIntent]'))[0].value;
+                        //var luisIntent = $('#dlgViewDiv').find($('input[name=luisIntent]'))[0].value; 기존에는 middle group
+                        var luisIntent = $('#dlgViewDiv').find($('input[name=predictIntent]'))[0].value;
+                        var predictIntent = $('#dlgViewDiv').find($('input[name=predictIntent]'))[0].value;//안 쓰겠지만 지우면 고칠게 많아질듯...차후 변경
 
                         $.ajax({
                             url: '/learning/learnUtterAjax',
                             dataType: 'json',
                             type: 'POST',
-                            data: {'entities':entities, 'dlgId':dlgId, 'luisId': luisId, 'luisIntent': luisIntent, 'utters' : inputUtterArray},
+                            data: {'entities':entities, 'dlgId':dlgId, 'luisId': luisId, 'luisIntent': luisIntent, 'utters' : inputUtterArray, 'predictIntent' : predictIntent},
                             success: function(result) {
                                 if(result['result'] == true) {
                                     alert(language.Added);
@@ -1246,11 +1250,20 @@ function createDialog(){
                     return false;
                 }
             })
+            //var predictIntent = $('#appInsertForm').find('#predictIntent')[0].value
+            var predictIntent;
+             $('#appInsertForm').find('[name=predictIntent]').each(function() {
+                if($(this).attr('disabled') == undefined) {
+                    predictIntent = $(this).val();
+                    return false;
+                }
+            })
             $('.newMidBtn').click();
             $('.cancelMidBtn').click();
 
             inputUttrHtml += '<input type="hidden" name="luisId" value="' + largeGroup + '"/>';
             inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + middleGroup + '"/>';
+            inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + predictIntent + '"/>';
 
             var createDlgClone = $('.dialogView').children().clone();
             $('#dlgViewDiv').html('');
@@ -1286,6 +1299,7 @@ function selectDlgListAjax(entity) {
                         inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
                         inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.LUIS_ID + '"/>';
                         inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.LUIS_INTENT + '"/>';
                         inputUttrHtml += tmp.dlg[j].CARD_TEXT;
                         inputUttrHtml += '</p>';
                         inputUttrHtml += '</div></div></div></div></div>';
@@ -1306,6 +1320,7 @@ function selectDlgListAjax(entity) {
                             inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
                             inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.LUIS_ID + '"/>';
                             inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                            inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.LUIS_INTENT + '"/>';
                         }
                         inputUttrHtml += '<li class="wc-carousel-item">';
                         inputUttrHtml += '<div class="wc-card hero">';
@@ -1353,6 +1368,7 @@ function selectDlgListAjax(entity) {
                         inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
                         inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.LUIS_ID + '"/>';
                         inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.LUIS_INTENT + '"/>';
                         inputUttrHtml += '<img src="' + /* 이미지 url */ tmp.dlg[j].MEDIA_URL + '">';
                         inputUttrHtml += '<div class="playImg"></div>';
                         inputUttrHtml += '<div class="hidden" alt="' + tmp.dlg[j].CARD_TITLE + '"></div>';
@@ -1828,6 +1844,7 @@ function searchDialog() {
                             inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
                             inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.GroupL + '"/>';
                             inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.GroupM + '"/>';
+                            inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.GroupM + '"/>';
                             inputUttrHtml += tmp.dlg[j].CARD_TEXT;
                             inputUttrHtml += '</p>';
                             inputUttrHtml += '</div></div></div></div></div>';
@@ -1849,6 +1866,7 @@ function searchDialog() {
                                 inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
                                 inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.GroupL + '"/>';
                                 inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.GroupM + '"/>';
+                                inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.GroupM + '"/>';
                             }
                             inputUttrHtml += '<li class="wc-carousel-item">';
                             inputUttrHtml += '<div class="wc-card hero">';
@@ -1898,6 +1916,7 @@ function searchDialog() {
                             inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
                             inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.GroupL + '"/>';
                             inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.GroupM + '"/>';
+                            inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.GroupM + '"/>';
                             inputUttrHtml += '<img src="' + /* 이미지 url */ tmp.dlg[j].MEDIA_URL + '">';
                             inputUttrHtml += '<div class="playImg"></div>';
                             inputUttrHtml += '<div class="hidden" alt="' + tmp.dlg[j].CARD_TITLE + '"></div>';
@@ -2353,6 +2372,33 @@ $(document).on('click', '.newMidBtn, .cancelMidBtn', function() {
     }
 })
 
+//다이얼로그 생성 모달창 - intent group
+$(document).on('click', '.newIntentBtn, .cancelIntentBtn', function() {
+
+    var $iptLuisIntent = $('input[name=predictIntent]');
+    var $selectLuisIntent = $('select[name=predictIntent]');
+
+    if($(this).hasClass('newIntentBtn')) {
+        $('.newIntentBtn').hide();
+        $('.cancelIntentBtn').show();
+
+        $iptLuisIntent.show();
+        $iptLuisIntent.removeAttr('disabled');
+
+        $selectLuisIntent.hide();
+        $selectLuisIntent.attr('disabled', 'disabled');
+    } else {
+        $('.newIntentBtn').show();
+        $('.cancelIntentBtn').hide();
+
+        $selectLuisIntent.show();
+        $selectLuisIntent.removeAttr('disabled');
+
+        $iptLuisIntent.hide();
+        $iptLuisIntent.attr('disabled', 'disabled');
+    }
+})
+
 
 
 function getGroupSeelectBox() {
@@ -2387,14 +2433,14 @@ function getGroupSeelectBox() {
 * 의도예측 select box 추가
 */
 function predictIntent(queryText){
-    console.log("start11111111===");
+    
     var queryTextArr = [];
     if (typeof queryText === 'string') {
         queryTextArr[0] = queryText;
     } else {  //'object'
         queryTextArr = queryText.reverse();
     }
-    console.log("start===");
+    
     $.ajax({
         url: '/learning/predictIntentAjax',                //주소
         dataType: 'json',                  //데이터 형식
@@ -2402,7 +2448,13 @@ function predictIntent(queryText){
         data: {'iptUtterance': queryTextArr},      //데이터를 json 형식, 객체형식으로 전송
 
         success: function(data){
-            console.log("success");
+            var success_data = data.body.intents;
+            var score_data;
+           
+            for(var i = 0; i < success_data.length; i++) {
+                score_data = success_data[i].score.toFixed(2);
+                $('select[name=predictIntent]').append('<option>' + success_data[i].intent +'::'+ score_data + '</option>');
+            }
         },
         error: function(error){
             console.log("fail===");

@@ -102,11 +102,8 @@
                                 <div class="box-header with-border">
                                     <h3 class="box-title">의도 예측</h3>
                                     <div class="btn_wrap03 fr" style="width:50%" >
-                                            <select id="predictIntent" class="form-control"> 
+                                            <select id="predictIntent" name="predictIntent" class="form-control"> 
                                                 <option value="all"><%= __('ALL') %></option>
-                                                <option value="yesterday"><%= __('Yesterday') %></option>
-                                                <option value="lastWeek"><%= __('Last_week') %></option>
-                                                <option value="lastMonth"><%= __('Last_month') %></option>
                                             </select>
                                     </div>                                                                  
                                 </div>
@@ -275,6 +272,7 @@
                         <!-- 그룹 정보 -->
                         <div class="col-md-6" style="padding:0">  
                             <form name="appInsertForm" id="appInsertForm">
+                                <input type="hidden" name="middleGroup" id="middleGroup">
                                 <h5><span class="col01 fa fa-chevron-right"></span> <%= __('GROUP_INFORMATION') %></h5>          
                                 <div class="form-group col-md-6"   style="padding:0" >
                                     <label><%= __('Large_group') %><span class="nec_ico">*</span></label>
@@ -282,6 +280,7 @@
                                         <option value="">선택</option>
                                     </select>
                                 </div> 
+                                <!--
                                 <div class="form-group col-md-6" style="padding-right:0"  >
                                     <label>
                                         <%= __('Middle_group') %><span class="nec_ico">*</span>                                        
@@ -293,8 +292,24 @@
                                     </select>
                                     <input type="text" name="middleGroup" class="form-control" style="display: none;" disabled></input>
                                 </div> 
+                            
                                 <div class="clear-both"></div>
                                 <div class="form-group" >
+                                    <label>Intent</label>
+                                    <button type="button" class="btn btn-block btn-default btn-xs fr newIntentBtn"><%= __('NEW') %></button>
+                                    <button type="button" class="btn btn-default btn-xs fr cancelIntentBtn" style="display: none;"><%= __('CANCEL') %></button>
+                                    <select class="form-control" id="predictIntent" name="predictIntent"> 
+                                        <option value="">선택</option>
+                                    </select>
+                                    <input type="text" name="predictIntent" id="predictIntent" class="form-control" style="display: none;" disabled></input>
+                                </div>
+                                -->
+                                <div class="form-group col-md-6" style="padding-right:0"  >
+                                    <label>Intent<span class="nec_ico">*</span></label>
+                                    <input type="text" name="predictIntent" id="predictIntent" class="form-control"></input>
+                                </div>
+                                <div class="clear-both"></div>
+                                <div class="form-group">
                                     <label><%= __('explanation') %></label>
                                     <textarea class="form-control" name="description" id="description" rows="3" placeholder="<%= __('Please_enter') %>" spellcheck="false" autocomplete='off'></textarea>
                                 </div>  

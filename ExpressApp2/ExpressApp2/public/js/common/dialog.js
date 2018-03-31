@@ -2685,6 +2685,7 @@ function searchDialog(dlgID) {
             $('#description').text(result['list'][0].DLG_DESCRIPTION);
             $("#largeGroup").val(result['list'][0].GROUPL).prop("selected",true);
             $("#middleGroup").val(result['list'][0].GROUPM).prop("selected",true);
+            $("#predictIntent").val(result['list'][0].GROUPM).prop("selected",true);
             $("#createDialog").attr('onclick','updateDialog()');
 
             //$(".insertForm .textLayout").css("display","block");
@@ -2882,5 +2883,30 @@ $(document).on('click', '.newMidBtn, .cancelMidBtn', function() {
     }
 })
 
+//다이얼로그 생성 모달창 - intent group
+$(document).on('click', '.newIntentBtn, .cancelIntentBtn', function() {
 
+    var $iptLuisIntent = $('input[name=predictIntent]');
+    var $selectLuisIntent = $('select[name=predictIntent]');
+
+    if($(this).hasClass('newIntentBtn')) {
+        $('.newIntentBtn').hide();
+        $('.cancelIntentBtn').show();
+
+        $iptLuisIntent.show();
+        $iptLuisIntent.removeAttr('disabled');
+
+        $selectLuisIntent.hide();
+        $selectLuisIntent.attr('disabled', 'disabled');
+    } else {
+        $('.newIntentBtn').show();
+        $('.cancelIntentBtn').hide();
+
+        $selectLuisIntent.show();
+        $selectLuisIntent.removeAttr('disabled');
+
+        $iptLuisIntent.hide();
+        $iptLuisIntent.attr('disabled', 'disabled');
+    }
+})
 

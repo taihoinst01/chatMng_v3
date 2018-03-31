@@ -1779,6 +1779,7 @@ router.post('/learnUtterAjax', function (req, res) {
     var luisIntent = req.body.luisIntent;
 
     var entities = req.body.entities;
+    var predictIntent = req.body.predictIntent;
     
     var dlgId = [];
     dlgId = req.body['dlgId[]'];
@@ -1797,6 +1798,10 @@ router.post('/learnUtterAjax', function (req, res) {
 
     
     var updateTblDlg = "UPDATE TBL_DLG SET GroupS = @entities WHERE DLG_ID = @dlgId; \n";
+
+    var selectAppIdQuery = "SELECT CHATBOT_ID, APP_ID, VERSION, APP_NAME,CULTURE, SUBSC_KEY \n";
+    selectAppIdQuery += "FROM TBL_LUIS_APP \n";
+    selectAppIdQuery += "WHERE CHATBOT_ID = (SELECT CHATBOT_NUM FROM TBL_CHATBOT_APP WHERE CHATBOT_NAME='"+req.session.appName+"')\n";
 
     (async () => {
         try {
@@ -1896,6 +1901,122 @@ router.post('/learnUtterAjax', function (req, res) {
             }
             */
 
+            /*
+            * 루이스에 선택된 intent에 utterance 를 넣는다.
+            * 그 후에 train 시킨다.
+            *  20180330 Jun Hyoung Park
+            */
+           var insertUtter;
+           var appId;
+           let selectAppId1;
+
+           let pool1 = await dbConnect.getConnection(sql);
+           //let pool1 = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
+           selectAppId1 = await pool1.request()
+               .query(selectAppIdQuery);
+
+           //appId = "e2693629-40e8-4769-9a38-daf5e6b56d4f";
+           for(var i = 0; i < selectAppId1.recordset.length; i++) {
+                appId = selectAppId1.recordset[i].APP_ID;
+            }
+            console.log("appId======insertUtter========= ="+ appId);
+            var options = {
+                headers: {
+                    'Ocp-Apim-Subscription-Key': req.session.subsKey
+                }
+            };
+
+           if (req.body['utters[]']) {
+            insertUtter = req.body['utters[]'];
+            for (var i=0; i<(typeof utterArry ==="string" ? 1:utterArry.length); i++) {    
+                insertUtter = (typeof utterArry ==="string" ? utterArry:utterArry[i]);
+            }
+
+            var publish_flag = "N";
+            var predictIntent_ = predictIntent;
+            var temp = predictIntent_.split("::");
+            var predictIntent_luis;
+            if(temp.length==0){
+                predictIntent_luis = predictIntent_;
+                
+            }else{
+                predictIntent_luis = temp[0];
+            }
+            //새로생성인지 기존것 선택인지 구분(새로생성시에는 스코어가 없다)
+            if(predictIntent_.match(/::/)){
+
+            }else{
+                publish_flag = "Y";
+            }
+           
+            var getEntityName = syncClient.get(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/hierarchicalentities?take=500' , options);
+            var addEntity = "";
+            console.log("entities ="+ req.body.entities);
+            var entities_temp = entities.split(",");
+            for(var ii=0; ii<entities_temp.length; ii++){
+                for(var k = 0; k < getEntityName.body.length; k++) {
+                    for(var j = 0 ; j < getEntityName.body[k].children.length; j++) {
+                        //console.log("aaa==="+getEntityName.body[k].children[j].name);
+                        //console.log("bbb==="+getEntityName.body[k].name);
+                        if( getEntityName.body[k].children[j].name == entities_temp[ii] ) {
+                            addEntity=addEntity + getEntityName.body[k].name + "::" + getEntityName.body[k].children[j].name + "//";
+                        }
+                    }
+                }
+            }
+            console.log("addEntity ="+ addEntity);
+            var addEntity_temp = addEntity.split("//");
+            console.log("addEntity_temp ="+ addEntity_temp.length);
+            
+ /*
+            options.payload = {
+                "text" : insertUtter,
+                "intentName" : predictIntent,
+                "entityLabels" :
+                [
+                    {
+                    "entityName": addEntity,
+                    "startCharIndex" : 0,
+                    "endCharIndex": insertUtter.length-1
+                    }
+                ]
+            }
+ */          
+            options.payload = [{
+                "text" : insertUtter,
+                "intentName" : predictIntent_luis,
+                "entityLabels" : []
+            }]
+
+            console.log("insertUtter==="+insertUtter+"/////intentName==="+predictIntent_luis);
+            //add luis utterance
+            var addUtterance = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/examples' , options);
+            var temp = JSON.stringify(addUtterance);
+            //luis train
+            var trainLuis = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train' , options);
+            var temp = JSON.stringify(trainLuis);
+            console.log("train temp===="+temp);
+            console.log("publish_flag===="+publish_flag);
+            /*
+            if(publish_flag=="Y"){
+                //luis publish
+                options.payload = {
+                    "versionId" : "0.1",
+                    "isStaging" : false,
+                    "region" : "westus"
+                }
+                var publishLuis = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/publish' , options);
+                var temp = JSON.stringify(publishLuis);
+                console.log("publish temp===="+temp);
+                
+            }else{
+                //nothing
+            }
+            */
+           }else{
+
+           }
+        /********************************************* */
             console.log(result1);
             //console.log(result2);
             let rows = result1.rowsAffected;
@@ -2398,6 +2519,10 @@ router.post('/addDialog',function(req,res){
         }
     }
 
+    var selectAppIdQuery = "SELECT CHATBOT_ID, APP_ID, VERSION, APP_NAME,CULTURE, SUBSC_KEY \n";
+    selectAppIdQuery += "FROM TBL_LUIS_APP \n";
+    selectAppIdQuery += "WHERE CHATBOT_ID = (SELECT CHATBOT_NUM FROM TBL_CHATBOT_APP WHERE CHATBOT_NAME='"+req.session.appName+"')\n";
+
     (async () => {
         try{
             let pool = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
@@ -2405,8 +2530,10 @@ router.post('/addDialog',function(req,res){
             //var selectTextDlgId = 'SELECT ISNULL(MAX(TEXT_DLG_ID)+1,1) AS TYPE_DLG_ID FROM TBL_DLG_TEXT';
             //var selectCarouselDlgId = 'SELECT ISNULL(MAX(CARD_DLG_ID)+1,1) AS TYPE_DLG_ID FROM TBL_DLG_CARD';
             //var selectMediaDlgId = 'SELECT ISNULL(MAX(MEDIA_DLG_ID)+1,1) AS TYPE_DLG_ID FROM TBL_DLG_MEDIA';
+            //var insertTblDlg = 'INSERT INTO TBL_DLG(DLG_ID,DLG_NAME,DLG_DESCRIPTION,DLG_LANG,DLG_TYPE,DLG_ORDER_NO,USE_YN, GroupL, GroupM, DLG_GROUP) VALUES ' +
+            //'(@dlgId,@dialogText,@dialogText,\'KO\',@dlgType,@dialogOrderNo,\'Y\', @largeGroup, @middleGroup, 2)';
             var insertTblDlg = 'INSERT INTO TBL_DLG(DLG_ID,DLG_NAME,DLG_DESCRIPTION,DLG_LANG,DLG_TYPE,DLG_ORDER_NO,USE_YN, GroupL, GroupM, DLG_GROUP) VALUES ' +
-            '(@dlgId,@dialogText,@dialogText,\'KO\',@dlgType,@dialogOrderNo,\'Y\', @largeGroup, @middleGroup, 2)';
+            '(@dlgId,@dialogText,@dialogText,\'KO\',@dlgType,@dialogOrderNo,\'Y\', @largeGroup, @predictIntent, 2)';
             var inserTblDlgText = 'INSERT INTO TBL_DLG_TEXT(DLG_ID,CARD_TITLE,CARD_TEXT,USE_YN) VALUES ' +
             '(@dlgId,@dialogTitle,@dialogText,\'Y\')';
             var insertTblCarousel = 'INSERT INTO TBL_DLG_CARD(DLG_ID,CARD_TITLE,CARD_TEXT,IMG_URL,BTN_1_TYPE,BTN_1_TITLE,BTN_1_CONTEXT,BTN_2_TYPE,BTN_2_TITLE,BTN_2_CONTEXT,BTN_3_TYPE,BTN_3_TITLE,BTN_3_CONTEXT,BTN_4_TYPE,BTN_4_TITLE,BTN_4_CONTEXT,CARD_ORDER_NO,USE_YN) VALUES ' +
@@ -2418,7 +2545,18 @@ router.post('/addDialog',function(req,res){
             var middleGroup = array[array.length - 1]["middleGroup"];
             var description = array[array.length - 1]["description"];
             //var sourceType = array[array.length - 1]["sourceType"];
-
+            var predictIntent = array[array.length - 1]["predictIntent"];
+            /*
+            var predictIntent_ = array[array.length - 1]["predictIntent"];
+            var temp = predictIntent_.split("::");
+            var predictIntent;
+            if(temp.length==0){
+                predictIntent = array[array.length - 1]["predictIntent"];
+            }else{
+                predictIntent = temp[0];
+            }
+           */
+           
             for(var i = 0; i < (array.length-1); i++) {
 
                 let result1 = await pool.request()
@@ -2437,19 +2575,21 @@ router.post('/addDialog',function(req,res){
                     .query(insertTblDlg);
                 }
                 */
-
+               
                let result2 = await pool.request()
                .input('dlgId', sql.Int, dlgId[0].DLG_ID)
                .input('dialogText', sql.NVarChar, (description.trim() == '' ? null: description.trim()))
                .input('dlgType', sql.NVarChar, array[i]["dlgType"])
                .input('dialogOrderNo', sql.Int, (i+1))
                .input('largeGroup', sql.NVarChar, largeGroup)
-               .input('middleGroup', sql.NVarChar, middleGroup)  
+               //.input('middleGroup', sql.NVarChar, middleGroup)
+               .input('predictIntent', sql.NVarChar, predictIntent)  
                .query(insertTblDlg);
                //.input('luisEntities', sql.NVarChar, (typeof luisEntities ==="string" ? luisEntities:luisEntities[j]))
-
+               
+               console.log("array[i]===================="+array[i]["dlgType"]);
                 if(array[i]["dlgType"] == "2") {
-                    
+                    console.log("start dlgType====2");
                     /*
                     let result3 = await pool.request()
                     .query(selectTextDlgId)
@@ -2461,7 +2601,7 @@ router.post('/addDialog',function(req,res){
                     .input('dialogTitle', sql.NVarChar, (array[i]["dialogTitle"].trim() == '' ? null: array[i]["dialogTitle"].trim()) )
                     .input('dialogText', sql.NVarChar, (array[i]["dialogText"].trim() == '' ? null: array[i]["dialogText"].trim()) )
                     .query(inserTblDlgText);                    
-
+                    
                 } else if(array[i]["dlgType"] == "3") {
                     /*
                     let result2 = await pool.request()
@@ -2589,6 +2729,32 @@ router.post('/addDialog',function(req,res){
                 }     
                                                     
                 tblDlgId.push(dlgId[0].DLG_ID);
+                /*
+               *luis insert-utterance / intent
+               * 20180329 Jun Hyoung Park
+               */
+                var endPoint = HOST + "/luis/api/v2.0/apps/";
+                var appId;
+                let pool1 = await dbConnect.getConnection(sql);
+                //let pool = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
+                let selectAppId = await pool1.request()
+                    .query(selectAppIdQuery);
+
+                for(var i = 0; i < selectAppId.recordset.length; i++) {
+                    appId = selectAppId.recordset[i].APP_ID;
+                } 
+                
+                var options = {
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': req.session.subsKey
+                    }
+                };
+
+                options.payload = {
+                    "name" : predictIntent
+                };
+                var luisIntentsRequest = syncClient.post(endPoint + appId +'/versions/0.1/intents', options);//make intent
+                /************************************************** */
 
             }
 
@@ -3155,17 +3321,19 @@ router.post('/predictIntentAjax', function (req, res) {
         try {
         
         let pool = await dbConnect.getConnection(sql);
+        //let pool = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
         let selectAppId = await pool.request()
             .query(selectAppIdQuery);
 
         for(var i = 0; i < selectAppId.recordset.length; i++) {
             appId = selectAppId.recordset[i].APP_ID;
         } 
-            
+        console.log("appid----"+appId);
         var endPoint = HOST + "/luis/v2.0/apps/";
-        //appId = "f267fc99-9bf5-4488-810e-3fa8f913662a";
-        //appId = "edeaa7f1-cd60-4cbb-aa9d-ec4fe127395b;
-        
+        //appId = "e2693629-40e8-4769-9a38-daf5e6b56d4f";//test chat bot
+        //appId = "5c4a176f-ef68-44be-beb8-f9fdfc2916c2";
+        //appId = "105ee664-581f-4c3e-814f-be548e0294be;
+        console.log("appId====="+appId);
         var queryParams = {
             "subscription-key": req.session.subsKey,
             "timezoneOffset": "0",
@@ -3181,26 +3349,7 @@ router.post('/predictIntentAjax', function (req, res) {
 
         //var luisRequest = endPoint + appId +'?' + querystring.stringify(queryParams);
         var luisRequest = syncClient.get(endPoint + appId +'?' + querystring.stringify(queryParams) , options);
-        var return_data = JSON.stringify(luisRequest.body.intents)
-        console.log("return_data==="+return_data);
-        //res.send(return_data);
-        res.send({status:200});
-        /*
-        request(luisRequest, function (err, response, body) {
-                if (err)
-                    console.log(err);
-                else {
-                    var data = JSON.parse(body);
-                   
-
-                    console.log(`Query: ${data.query}`);
-                    console.log(`Top Intent: ${data.topScoringIntent.intent}`);
-                    console.log('Entities:');
-                    console.log(data.entities);
-                    
-                }
-            });
-        */
+        res.send(luisRequest);
         } catch (error) {
             console.log(error);
         }finally{
@@ -3210,38 +3359,8 @@ router.post('/predictIntentAjax', function (req, res) {
     })()
     
     sql.on('error', err => {
+        console.log(err);
     })
-    /*
-    console.log(`appId======`+appId);
-    var endPoint = HOST + "/luis/v2.0/apps/";
-    //var appId = "f267fc99-9bf5-4488-810e-3fa8f913662a";
-    
-    var queryParams = {
-        "subscription-key": req.session.subsKey,
-        "timezoneOffset": "0",
-        "verbose":  true,
-        "q": iptUtterance
-    }
-
-    var luisRequest = endPoint + appId +'?' + querystring.stringify(queryParams);
-    console.log(`luisRequest======`+luisRequest);
-
-    request(luisRequest,
-        function (err,
-            response, body) {
-            if (err)
-                console.log(err);
-            else {
-                var data = JSON.parse(body);
-
-                console.log(`Query: ${data.query}`);
-                console.log(`Top Intent: ${data.topScoringIntent.intent}`);
-                console.log('Entities:');
-                console.log(data.entities);
-            }
-        });
-        */
-
 });
 
 
