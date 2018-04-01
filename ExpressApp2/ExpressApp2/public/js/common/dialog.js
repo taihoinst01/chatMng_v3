@@ -786,6 +786,7 @@ function getGroupSeelectBox() {
             }
 
             $("#middleGroup").html(groupHtml);
+            $("#predictIntent").html(groupHtml);
 
         }
     });
@@ -2127,9 +2128,7 @@ function openModalBox(target){
     //$dlgForm = $('#commonLayout .textLayout').eq(0).clone();
     //$carouselForm = $('#commonLayout .carouselLayout').eq(0).clone();
     //$mediaForm = $('#commonLayout .mediaLayout').eq(0).clone();
-
     if(target == "#create_dlg") {     
-    
         /* 
         
             checkFlag 체크된 추천문장이 있는지 없는지
@@ -2175,6 +2174,17 @@ function openModalBox(target){
         $('#description').text('');
 
         $(".insertForm .textLayout").css("display","block");
+        /*
+        * intent 부분이 text 타입
+        */
+       var $iptLuisIntent = $('input[name=predictIntent]');
+       var $selectLuisIntent = $('select[name=predictIntent]');
+
+       $iptLuisIntent.show();
+       $iptLuisIntent.removeAttr('disabled');
+
+       $selectLuisIntent.hide();
+       $selectLuisIntent.attr('disabled', 'disabled');
     }
 
     if(target == "#search_dlg") {
@@ -2680,20 +2690,34 @@ function searchDialog(dlgID) {
             $('.dialogView').html(inputUttrHtml);
             //$('#dialogShow').prepend(inputUttrHtml);
 
+            /*
+    * intent 부분이 select 타입
+    */
+   var $iptLuisIntent = $('input[name=predictIntent]');
+   var $selectLuisIntent = $('select[name=predictIntent]');
+
+   $selectLuisIntent.show();
+   $selectLuisIntent.removeAttr('disabled');
+
+   $iptLuisIntent.hide();
+   $iptLuisIntent.attr('disabled', 'disabled');
+
             //대화상자 수정 추가
             $('h4#myModalLabel.modal-title').text(language.UPDATE_DIALOG_BOX);
             $('#description').text(result['list'][0].DLG_DESCRIPTION);
             $("#largeGroup").val(result['list'][0].GROUPL).prop("selected",true);
             $("#middleGroup").val(result['list'][0].GROUPM).prop("selected",true);
+            
             $("#predictIntent").val(result['list'][0].GROUPM).prop("selected",true);
             $("#createDialog").attr('onclick','updateDialog()');
 
             //$(".insertForm .textLayout").css("display","block");
-            
+
         } 
         
 
     }); // ------      ajax 끝-----------------
+
 }
 
 function updateDialog() {
@@ -2884,6 +2908,7 @@ $(document).on('click', '.newMidBtn, .cancelMidBtn', function() {
 })
 
 //다이얼로그 생성 모달창 - intent group
+/*
 $(document).on('click', '.newIntentBtn, .cancelIntentBtn', function() {
 
     var $iptLuisIntent = $('input[name=predictIntent]');
@@ -2910,3 +2935,4 @@ $(document).on('click', '.newIntentBtn, .cancelIntentBtn', function() {
     }
 })
 
+*/
