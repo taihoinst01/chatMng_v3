@@ -2453,7 +2453,7 @@ function predictIntent(queryText){
            
             for(var i = 0; i < success_data.length; i++) {
                 score_data = success_data[i].score.toFixed(2);
-                $('select[name=predictIntent]').append('<option>' + success_data[i].intent +'::'+ score_data + '</option>');
+                $('select[name=predictIntent]').append('<option value="' + success_data[i].intent + '">' + success_data[i].intent +'::'+ score_data + '</option>');
             }
         },
         error: function(error){
@@ -2461,6 +2461,156 @@ function predictIntent(queryText){
         }//-------function end
     }); //-------------ajax end
 }
+
+$(document).on('change','#predictIntent',function(e){
+    var intent = $("#predictIntent option:selected").val();
+
+    $.ajax({
+        url: '/learning/changeIntentAjax',                //주소
+        dataType: 'json',                  //데이터 형식
+        type: 'POST',                      //전송 타입
+        data: {'intent': intent},      //데이터를 json 형식, 객체형식으로 전송
+
+        success: function(result){
+            $('#dlgViewDiv').html('');
+            var inputUttrHtml = '';
+            for (var i=0; i<result['list'].length; i++) {
+                var tmp = result['list'][i];
+
+                for(var j = 0; j < tmp.dlg.length; j++) {
+                    if(tmp.dlg[j].DLG_TYPE == 2) {
+                        inputUttrHtml += '<div class="wc-message wc-message-from-bot">';
+                        inputUttrHtml += '<div class="wc-message-content">';
+                        inputUttrHtml += '<svg class="wc-message-callout"></svg>';
+                        inputUttrHtml += '<div><div class="format-markdown"><div class="textMent">';
+                        inputUttrHtml += '<p>';
+                        inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.LUIS_ID + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                        inputUttrHtml += tmp.dlg[j].CARD_TEXT;
+                        inputUttrHtml += '</p>';
+                        inputUttrHtml += '</div></div></div></div></div>';
+                    } else if(tmp.dlg[j].DLG_TYPE == 3) {
+                        
+                        if(j == 0) {
+                            inputUttrHtml += '<div class="wc-message wc-message-from-bot" style="width:90%">';
+                            inputUttrHtml += '<div class="wc-message-content" style="width:90%;">';
+                            inputUttrHtml += '<svg class="wc-message-callout"></svg>';
+                            inputUttrHtml += '<div class="wc-carousel slideBanner" style="width: 312px;">';
+                            inputUttrHtml += '<div>';
+                            inputUttrHtml += '<button class="scroll previous" id="prevBtn' + (botChatNum) + '" style="display: none;" onclick="prevBtn(' + botChatNum + ', this)">';
+                            inputUttrHtml += '<img src="https://bot.hyundai.com/assets/images/02_contents_carousel_btn_left_401x.png">';
+                            inputUttrHtml += '</button>';
+                            inputUttrHtml += '<div class="wc-hscroll-outer" >';
+                            inputUttrHtml += '<div class="wc-hscroll" style="margin-bottom: 0px;" class="content" id="slideDiv' + (botChatNum) + '">';
+                            inputUttrHtml += '<ul style="padding-left:0px;">';
+                            inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
+                            inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.LUIS_ID + '"/>';
+                            inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                            inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                        }
+                        inputUttrHtml += '<li class="wc-carousel-item">';
+                        inputUttrHtml += '<div class="wc-card hero">';
+                        inputUttrHtml += '<div class="wc-container imgContainer" >';
+                        inputUttrHtml += '<img src="' + tmp.dlg[j].IMG_URL +'">';
+                        inputUttrHtml += '</div>';
+                        if(tmp.dlg[j].CARD_TITLE != null) {
+                            inputUttrHtml += '<h1>' + /*cardtitle*/ tmp.dlg[j].CARD_TITLE + '</h1>';
+                        }
+                        if(tmp.dlg[j].CARD_TEXT != null) {
+                            inputUttrHtml += '<p class="carousel">' + /*cardtext*/ tmp.dlg[j].CARD_TEXT + '</p>';
+                        }
+                        inputUttrHtml += '<ul class="wc-card-buttons"><li><button>' + /*btntitle*/ tmp.dlg[j].BTN_1_TITLE + '<button></li></ul>';
+                        inputUttrHtml += '</div>';
+                        inputUttrHtml += '</li>';
+                        
+                        //다이얼로그가 한개일때에는 오른쪽 버튼 x
+                        if(tmp.dlg.length == 2 && j == 1) {
+                            inputUttrHtml += '</ul>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '</div></div></div></div></div>';
+                        } else if((tmp.dlg.length-1) == j) {
+                            inputUttrHtml += '</ul>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '<button class="scroll next" id="nextBtn' + (botChatNum) + '" onclick="nextBtn(' + botChatNum + ', this)"><img src="https://bot.hyundai.com/assets/images/02_contents_carousel_btn_right_401x.png"></button>';
+                            inputUttrHtml += '</div></div></div></div></div>';
+                        }
+                   
+                    } else if(tmp.dlg[j].DLG_TYPE == 4) {
+                        inputUttrHtml += '<div class="wc-message wc-message-from-bot">';
+                        inputUttrHtml += '<div class="wc-message-content">';
+                        inputUttrHtml += '<svg class="wc-message-callout"></svg>';
+                        inputUttrHtml += '<div>';
+                        inputUttrHtml += '<div class="wc-carousel">';
+                        inputUttrHtml += '<div>';
+                        inputUttrHtml += '<button class="scroll previous" disabled=""><img src="https://bot.hyundai.com/assets/images/02_contents_carousel_btn_left_401x.png"></button>';
+                        inputUttrHtml += '<div class="wc-hscroll-outer">';
+                        inputUttrHtml += '<div class="wc-hscroll" style="margin-bottom: 0px;">';
+                        inputUttrHtml += '<ul style="padding-left:0px;>';
+                        inputUttrHtml += '<li class="wc-carousel-item wc-carousel-play">';
+                        inputUttrHtml += '<div class="wc-card hero">';
+                        inputUttrHtml += '<div class="wc-card-div imgContainer">';
+                        inputUttrHtml += '<input type="hidden" name="dlgId" value="' + tmp.dlg[j].DLG_ID + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="luisId" value="' + tmp.LUIS_ID + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="luisIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                        inputUttrHtml += '<input type="hidden" name="predictIntent" value="' + tmp.LUIS_INTENT + '"/>';
+                        inputUttrHtml += '<img src="' + /* 이미지 url */ tmp.dlg[j].MEDIA_URL + '">';
+                        inputUttrHtml += '<div class="playImg"></div>';
+                        inputUttrHtml += '<div class="hidden" alt="' + tmp.dlg[j].CARD_TITLE + '"></div>';
+                        inputUttrHtml += '<div class="hidden" alt="' + /* media url */ tmp.dlg[j].CARD_VALUE + '"></div>';
+                        inputUttrHtml += '</div>';
+                        inputUttrHtml += '<h1>' + /* title */ tmp.dlg[j].CARD_TITLE + '</h1>';
+                        inputUttrHtml += '<ul class="wc-card-buttons">';
+                        inputUttrHtml += '</ul>';
+                        inputUttrHtml += '</div>';
+                        inputUttrHtml += '</li>';
+
+                        //다이얼로그가 한개일때에는 오른쪽 버튼 x
+                        if((tmp.dlg.length == 2 && j == 1) || (tmp.dlg.length == 1 && j == 0)) {
+                            inputUttrHtml += '</ul>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '</div></div></div></div></div>';
+                        } else if((tmp.dlg.length-1) == j) {
+                            inputUttrHtml += '</ul>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '</div>';
+                            inputUttrHtml += '<button class="scroll next" id="nextBtn' + (botChatNum) + '" onclick="nextBtn(' + botChatNum + ', this)"><img src="https://bot.hyundai.com/assets/images/02_contents_carousel_btn_right_401x.png"></button>';
+                            inputUttrHtml += '</div></div></div></div></div>';
+                        }
+
+                    }
+                }
+
+                //inputUttrHtml += '<tr> <td> <div class="check-radio-tweak-wrapper" type="checkbox">';
+                //inputUttrHtml += '<input name="dlgChk" class="tweak-input"  onclick="" type="checkbox"/> </div> </td>';
+                //inputUttrHtml += '<td class="txt_left" ><input type="hidden" name="' + tmp.DLG_ID + '" value="' + tmp.DLG_ID + '" />' + tmp.CARD_TEXT + '</td></tr>';
+                //inputUttrHtml += '<td class="txt_center" > <a href="#" class="btn btn-small">Add</a> </td></tr>';
+            }//<a href="#" class="btn b02  btn-small js-modal-close">Cancel</a>
+            //$('#dlgListTable').find('tbody').empty();
+
+            $('#dlgViewDiv').prepend(inputUttrHtml);
+
+            //dlg 기억.
+            /*
+            var utter ="";
+            for (var i=0; i<entity.length; i++) {
+                utter += entity[i] + ",";
+            }
+            utter = utter.substr(0, utter.length-1);
+            dlgMap[utter] = inputUttrHtml;
+
+            botChatNum++;
+            */
+        },
+        error: function(error){
+            console.log("fail===");
+        }//-------function end
+    });
+});
 
 /*
 //TBL_DLG_RELATION_LUIS 테이블에서 LUIS_INTENT 가져오기

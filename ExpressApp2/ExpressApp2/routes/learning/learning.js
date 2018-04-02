@@ -3305,6 +3305,107 @@ router.post('/selectApiGroup', function (req, res) {
     
 });
 
+//의도예측 change
+router.post('/changeIntentAjax', function (req, res) {
+
+    var intent = req.body.intent;
+
+    var selRelationQuery = "SELECT A.DLG_ID  DLG_ID, DLG_TYPE, DLG_ORDER_NO, LUIS_ID, LUIS_INTENT \n";
+    selRelationQuery += "FROM TBL_DLG_RELATION_LUIS A, TBL_DLG B \n";
+    selRelationQuery += "WHERE LUIS_INTENT = @intent \n";
+    selRelationQuery += "AND A.DLG_ID = B.DLG_ID \n";
+    selRelationQuery += "AND A.USE_YN = 'Y' \n";
+    selRelationQuery += "ORDER BY DLG_ORDER_NO \n";
+
+    var selDlgTextQuery = "SELECT DLG_ID, CARD_TITLE, CARD_TEXT, '2' AS DLG_TYPE \n";
+    selDlgTextQuery += "FROM TBL_DLG_TEXT \n";
+    selDlgTextQuery += "WHERE DLG_ID = @dlgId \n";
+
+    var selDlgCardQuery = "SELECT DLG_ID, CARD_TEXT, CARD_TITLE, IMG_URL, BTN_1_TYPE, BTN_1_TITLE, BTN_1_CONTEXT,\n"
+        + "BTN_2_TYPE, BTN_2_TITLE, BTN_2_CONTEXT,\n"
+        + "BTN_3_TYPE, BTN_3_TITLE, BTN_3_CONTEXT,\n"
+        + "BTN_4_TYPE, BTN_4_TITLE, BTN_4_CONTEXT,\n"
+        + "CARD_ORDER_NO, CARD_VALUE,\n"
+        + "USE_YN, '3' AS DLG_TYPE \n"
+        + "FROM TBL_DLG_CARD\n"
+        + "WHERE USE_YN = 'Y'\n"
+        + "AND DLG_ID = @dlgId\n"
+        + "WHERE 1=1\n";
+
+    var selDlgMediaQuery = "SELECT DLG_ID, CARD_TEXT, CARD_TITLE, MEDIA_URL, BTN_1_TYPE, BTN_1_TITLE, BTN_1_CONTEXT,\n"
+        + "BTN_2_TYPE, BTN_2_TITLE, BTN_2_CONTEXT,\n"
+        + "BTN_3_TYPE, BTN_3_TITLE, BTN_3_CONTEXT,\n"
+        + "BTN_4_TYPE, BTN_4_TITLE, BTN_4_CONTEXT,\n"
+        + "CARD_VALUE,\n"
+        + "USE_YN, '4' AS DLG_TYPE \n"
+        + "FROM TBL_DLG_MEDIA\n"
+        + "WHERE 1=1\n"
+        + "AND USE_YN = 'Y'\n"
+        + "AND DLG_ID = @dlgId \n";
+        + "ORDER BY DLG_ID";
+    
+    var result = [];
+
+    (async () => {
+        try {
+        
+            let pool = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
+            let selRelation = await pool.request()
+                .input('intent', sql.NVarChar, intent)
+                .query(selRelationQuery);
+
+            for(var i = 0; i < selRelation.recordset.length; i++) {
+
+                var row = {};
+                row.dlg = [];
+                row.LUIS_ID = selRelation.recordset[i].LUIS_ID;
+                row.LUIS_INTENT = selRelation.recordset[i].LUIS_INTENT;
+
+                if(selRelation.recordset[i].DLG_TYPE == 2) {
+
+                    let selDlgText = await pool.request()
+                        .input('dlgId', sql.NVarChar, selRelation.recordset[i].DLG_ID)
+                        .query(selDlgTextQuery);
+                    
+                    row.dlg.push(selDlgText.recordset[0]);
+
+                } else if(selRelation.recordset[i].DLG_TYPE == 3) {
+                    
+                    let selDlgCard = await pool.request()
+                    .input('dlgId', sql.NVarChar, selRelation.recordset[i].DLG_ID)
+                    .query(selDlgCardQuery);
+
+                    for(var cardNum = 0 ; cardNum < selDlgCard.recordset.length; cardNum++) {
+                        row.dlg.push(selDlgCard.recordset[cardNum]);
+                    }
+
+                } else if(selRelation.recordset[i].DLG_TYPE == 4) {
+
+                    let selDlgMedia = await pool.request()
+                    .input('dlgId', sql.NVarChar, selRelation.recordset[i].DLG_ID)
+                    .query(selDlgMediaQuery);
+
+                    row.dlg.push(selDlgMedia.recordset[0]);
+                }
+
+                result.push(row);
+            }
+
+            res.send({list : result});
+        } catch (error) {
+            console.log(error);
+        }finally{
+            sql.close();
+        }
+        
+    })()
+    
+    sql.on('error', err => {
+        console.log(err);
+    })
+
+});
+
 //의도예측 을 위한 select box data
 router.post('/predictIntentAjax', function (req, res) {
     
