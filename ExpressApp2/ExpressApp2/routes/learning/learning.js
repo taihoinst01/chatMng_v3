@@ -1948,10 +1948,43 @@ router.post('/learnUtterAjax', function (req, res) {
             }else{
                 publish_flag = "Y";
             }
-           
+
+            var getIntentName = syncClient.get(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/intents?take=500' , options);
+            
+            var createIntent = true;
+
+            for(var intentNum = 0; intentNum < getIntentName.body.length; intentNum++) {
+                if(predictIntent_luis == getIntentName.body[intentNum].name){
+                    createIntent = false;
+                    break;
+                }
+            }
+
+            if(createIntent == true) {
+
+                var intentOptions = {
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': req.session.subsKey
+                    }
+                };
+
+                intentOptions.payload = {
+                    "name": predictIntent_luis
+                }
+
+                var createIntentName = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/intents' , intentOptions);
+            }
+
             var getEntityName = syncClient.get(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/hierarchicalentities?take=500' , options);
             var addEntity = "";
             console.log("entities ="+ req.body.entities);
+
+            options.payload = [{
+                "text" : insertUtter,
+                "intentName" : predictIntent_luis,
+                "entityLabels" : []
+            }]
+
             var entities_temp = entities.split(",");
             for(var ii=0; ii<entities_temp.length; ii++){
                 for(var k = 0; k < getEntityName.body.length; k++) {
@@ -1959,7 +1992,13 @@ router.post('/learnUtterAjax', function (req, res) {
                         //console.log("aaa==="+getEntityName.body[k].children[j].name);
                         //console.log("bbb==="+getEntityName.body[k].name);
                         if( getEntityName.body[k].children[j].name == entities_temp[ii] ) {
-                            addEntity=addEntity + getEntityName.body[k].name + "::" + getEntityName.body[k].children[j].name + "//";
+                            addEntity=addEntity + getEntityName.body[k].name + "::" + getEntityName.body[k].children[j].name;
+
+                            var json = new Object();
+                            json.entityName = addEntity;
+                            json.startCharIndex = insertUtter.indexOf(entities_temp[ii]);
+                            json.endCharIndex = insertUtter.indexOf(entities_temp[ii]) + entities_temp[ii].length -1;
+                            options.payload[0].entityLabels.push(json);
                         }
                     }
                 }
@@ -1967,36 +2006,68 @@ router.post('/learnUtterAjax', function (req, res) {
             console.log("addEntity ="+ addEntity);
             var addEntity_temp = addEntity.split("//");
             console.log("addEntity_temp ="+ addEntity_temp.length);
-            
- /*
-            options.payload = {
-                "text" : insertUtter,
-                "intentName" : predictIntent,
-                "entityLabels" :
-                [
-                    {
-                    "entityName": addEntity,
-                    "startCharIndex" : 0,
-                    "endCharIndex": insertUtter.length-1
-                    }
-                ]
-            }
- */          
-            options.payload = [{
-                "text" : insertUtter,
-                "intentName" : predictIntent_luis,
-                "entityLabels" : []
-            }]
-
+                      
             console.log("insertUtter==="+insertUtter+"/////intentName==="+predictIntent_luis);
             //add luis utterance
             var addUtterance = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/examples' , options);
             var temp = JSON.stringify(addUtterance);
             //luis train
-            var trainLuis = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train' , options);
-            var temp = JSON.stringify(trainLuis);
-            console.log("train temp===="+temp);
-            console.log("publish_flag===="+publish_flag);
+            //var trainLuis = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train' , options);
+            //var temp = JSON.stringify(trainLuis);
+            //console.log("train temp===="+temp);
+            //console.log("publish_flag===="+publish_flag);
+
+            var trainOptions = {
+                headers: {
+                    'Ocp-Apim-Subscription-Key': req.session.subsKey
+                }
+            };
+
+            var client = new Client();
+
+            client.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train', trainOptions, function (data, response) {
+
+                var repeat = setInterval(function(){
+                    var count = 0;
+                    var traninResultGet = syncClient.get(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train' , trainOptions);
+
+                    for(var trNum = 0; trNum < traninResultGet.body.length; trNum++) {
+                        if(traninResultGet.body[trNum].details.status == "Fail") {
+                            res.send({result:false});
+                        }
+                        if(traninResultGet.body[trNum].details.status == "InProgress") {
+                            break;
+                        }
+                        count++;
+
+                        if(traninResultGet.body.length == count) {
+                            var pubOption = {
+                                headers: {
+                                    'Ocp-Apim-Subscription-Key': req.session.subsKey,
+                                    'Content-Type':'application/json'
+                                },
+                                payload:{
+                                    'versionId': '0.1',
+                                    'isStaging': false,
+                                    'region': 'westus'
+                                }
+                            }
+
+                            var publishResult = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/publish' , pubOption);
+
+                            clearInterval(repeat);
+
+                            res.send({result:true});
+                        }
+                    }
+
+
+                },1000);
+          
+            });
+
+
+
             /*
             if(publish_flag=="Y"){
                 //luis publish
@@ -2019,6 +2090,8 @@ router.post('/learnUtterAjax', function (req, res) {
         /********************************************* */
             console.log(result1);
             //console.log(result2);
+
+            /*
             let rows = result1.rowsAffected;
 
             if(rows[0] == 1) {
@@ -2026,6 +2099,7 @@ router.post('/learnUtterAjax', function (req, res) {
             } else {
                 res.send({result:false});
             }
+            */
         
         } catch (err) {
             // ... error checks

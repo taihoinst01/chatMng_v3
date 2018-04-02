@@ -470,6 +470,27 @@ $(document).ready(function(){
                             dataType: 'json',
                             type: 'POST',
                             data: {'entities':entities, 'dlgId':dlgId, 'luisId': luisId, 'luisIntent': luisIntent, 'utters' : inputUtterArray, 'predictIntent' : predictIntent},
+                            beforeSend: function () {
+
+                                var width = 0;
+                                var height = 0;
+                                var left = 0;
+                                var top = 0;
+            
+                                width = 50;
+                                height = 50;
+            
+                                top = ( $(window).height() - height ) / 2 + $(window).scrollTop();
+                                left = ( $(window).width() - width ) / 2 + $(window).scrollLeft();
+            
+                                $("#loadingBar").addClass("in");
+                                $("#loadingImg").css({position:'absolute'}).css({left:left,top:top});
+                                $("#loadingBar").css("display","block");
+                            },
+                            complete: function () {
+                                $("#loadingBar").removeClass("in");
+                                $("#loadingBar").css("display","none");      
+                            },
                             success: function(result) {
                                 if(result['result'] == true) {
                                     alert(language.Added);
