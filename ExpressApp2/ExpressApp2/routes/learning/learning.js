@@ -1919,7 +1919,7 @@ router.post('/learnUtterAjax', function (req, res) {
            for(var i = 0; i < selectAppId1.recordset.length; i++) {
                 appId = selectAppId1.recordset[i].APP_ID;
             }
-            console.log("appId======insertUtter========= ="+ appId);
+            //console.log("appId======insertUtter========= ="+ appId);
             var options = {
                 headers: {
                     'Ocp-Apim-Subscription-Key': req.session.subsKey
@@ -3503,12 +3503,12 @@ router.post('/predictIntentAjax', function (req, res) {
         for(var i = 0; i < selectAppId.recordset.length; i++) {
             appId = selectAppId.recordset[i].APP_ID;
         } 
-        console.log("appid----"+appId);
+        //console.log("appid----"+appId);
         var endPoint = HOST + "/luis/v2.0/apps/";
         //appId = "e2693629-40e8-4769-9a38-daf5e6b56d4f";//test chat bot
         //appId = "5c4a176f-ef68-44be-beb8-f9fdfc2916c2";
         //appId = "105ee664-581f-4c3e-814f-be548e0294be;
-        console.log("appId====="+appId);
+        //console.log("appId====="+appId);
         var queryParams = {
             "subscription-key": req.session.subsKey,
             "timezoneOffset": "0",

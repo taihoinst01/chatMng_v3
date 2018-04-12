@@ -203,6 +203,7 @@
 	"Please_enter_a_sentence": "문장을 입력하세요",
 	"FUNCTION": "기능",
 	"Dialog_box": "대화상자",
+	"Predict_Intent": "의도예측",
 	"SENTENCE_DIALOG_BOX_LINKED_LEARNING": "문장-대화상자 연계 학습",
 	"WORD_DEFINITION": "단어정의",
 	"SYNONYM": "유의어",

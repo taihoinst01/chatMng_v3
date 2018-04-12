@@ -16,6 +16,7 @@ $(document).ready(function(){
     var recommendParam = $('#utterence').val();
     if(recommendParam){
         utterInput(recommendParam);
+        predictIntent(recommendParam);
     }
     
     //새로운 다이얼로그 생성 모달창에 필요한 luisId 가져오기
