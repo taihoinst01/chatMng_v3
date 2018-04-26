@@ -435,84 +435,80 @@ $(document).ready(function(){
         } else if(entitiyCheckCount > 1) {
             alert("학습된 엔티티가 포함된 문장을 한개만 선택해주세요.");
         } else if(entitiyCheckCount == 1) {
-
-            if(entitiyCheckFlag == false) {
-                alert("선택된 문장에 학습된 엔티티가 포함되어 있지 않습니다. 신규 단어 추가를 해주세요.")
-            } else {
                 
-                if($('input[name=dlgBoxChk]').parent().hasClass('checked') == true) {
-                    if($('#dlgViewDiv').children().length == 0){
-                        alert("선택된 대화상자창에 대화상자가 없습니다. 대화상자를 검색해서 추가 하시거나 생성해주세요.");
-                    } else {
-                        var entities = $('input[name=entity]').val();
-
-                        var inputDlgId = $('input[name=dlgId]');
-                        var dlgId = new Array();
-                        inputDlgId.each(function(n) { 
-                            dlgId.push(inputDlgId[n].value);
-                            return dlgId;
-                        });
-
-                        var inputUtterArray = new Array();
-                        $('#utterTableBody tr').each(function() {
-                            if ( $(this).find('div').hasClass('checked') ) {
-                                inputUtterArray.push($(this).find('input[name=hiddenUtter]').val());
-                            }
-                        });
-
-                        var utterQuery = $('');
-                        var luisId = $('#dlgViewDiv').find($('input[name=luisId]'))[0].value;
-                        //var luisIntent = $('#dlgViewDiv').find($('input[name=luisIntent]'))[0].value; 기존에는 middle group
-                        var luisIntent = $('#dlgViewDiv').find($('input[name=predictIntent]'))[0].value;
-                        var predictIntent = $('#dlgViewDiv').find($('input[name=predictIntent]'))[0].value;//안 쓰겠지만 지우면 고칠게 많아질듯...차후 변경
-
-                        $.ajax({
-                            url: '/learning/learnUtterAjax',
-                            dataType: 'json',
-                            type: 'POST',
-                            data: {'entities':entities, 'dlgId':dlgId, 'luisId': luisId, 'luisIntent': luisIntent, 'utters' : inputUtterArray, 'predictIntent' : predictIntent},
-                            beforeSend: function () {
-
-                                var width = 0;
-                                var height = 0;
-                                var left = 0;
-                                var top = 0;
-            
-                                width = 50;
-                                height = 50;
-            
-                                top = ( $(window).height() - height ) / 2 + $(window).scrollTop();
-                                left = ( $(window).width() - width ) / 2 + $(window).scrollLeft();
-            
-                                $("#loadingBar").addClass("in");
-                                $("#loadingImg").css({position:'absolute'}).css({left:left,top:top});
-                                $("#loadingBar").css("display","block");
-                            },
-                            complete: function () {
-                                $("#loadingBar").removeClass("in");
-                                $("#loadingBar").css("display","none");      
-                            },
-                            success: function(result) {
-                                if(result['result'] == true) {
-                                    alert(language.Added);
-                                    
-                                    $('input[name=tableAllChk]').parent().iCheck('uncheck');
-
-                                    $('.recommendTbl tbody').html('');
-                                    $('#dlgViewDiv').html('');
-
-                                    $('input[name=dlgBoxChk]').parent().iCheck('uncheck');
-                                    $('.pagination').html('');
-                                }else{
-                                    alert(language.It_failed);
-                                }
-                            }
-                        });
-                    }
+            if($('input[name=dlgBoxChk]').parent().hasClass('checked') == true) {
+                if($('#dlgViewDiv').children().length == 0){
+                    alert("선택된 대화상자창에 대화상자가 없습니다. 대화상자를 검색해서 추가 하시거나 생성해주세요.");
                 } else {
-                    alert("대화상자를 선택해주세요.");
-                } 
-            }
+                    var entities = $('input[name=entity]').val();
+
+                    var inputDlgId = $('input[name=dlgId]');
+                    var dlgId = new Array();
+                    inputDlgId.each(function(n) { 
+                        dlgId.push(inputDlgId[n].value);
+                        return dlgId;
+                    });
+
+                    var inputUtterArray = new Array();
+                    $('#utterTableBody tr').each(function() {
+                        if ( $(this).find('div').hasClass('checked') ) {
+                            inputUtterArray.push($(this).find('input[name=hiddenUtter]').val());
+                        }
+                    });
+
+                    var utterQuery = $('');
+                    var luisId = $('#dlgViewDiv').find($('input[name=luisId]'))[0].value;
+                    //var luisIntent = $('#dlgViewDiv').find($('input[name=luisIntent]'))[0].value; 기존에는 middle group
+                    var luisIntent = $('#dlgViewDiv').find($('input[name=predictIntent]'))[0].value;
+                    var predictIntent = $('#dlgViewDiv').find($('input[name=predictIntent]'))[0].value;//안 쓰겠지만 지우면 고칠게 많아질듯...차후 변경
+
+                    $.ajax({
+                        url: '/learning/learnUtterAjax',
+                        dataType: 'json',
+                        type: 'POST',
+                        data: {'entities':entities, 'dlgId':dlgId, 'luisId': luisId, 'luisIntent': luisIntent, 'utters' : inputUtterArray, 'predictIntent' : predictIntent},
+                        beforeSend: function () {
+
+                            var width = 0;
+                            var height = 0;
+                            var left = 0;
+                            var top = 0;
+        
+                            width = 50;
+                            height = 50;
+        
+                            top = ( $(window).height() - height ) / 2 + $(window).scrollTop();
+                            left = ( $(window).width() - width ) / 2 + $(window).scrollLeft();
+        
+                            $("#loadingBar").addClass("in");
+                            $("#loadingImg").css({position:'absolute'}).css({left:left,top:top});
+                            $("#loadingBar").css("display","block");
+                        },
+                        complete: function () {
+                            $("#loadingBar").removeClass("in");
+                            $("#loadingBar").css("display","none");      
+                        },
+                        success: function(result) {
+                            if(result['result'] == true) {
+                                alert(language.Added);
+                                
+                                $('input[name=tableAllChk]').parent().iCheck('uncheck');
+
+                                $('.recommendTbl tbody').html('');
+                                $('#dlgViewDiv').html('');
+
+                                $('input[name=dlgBoxChk]').parent().iCheck('uncheck');
+                                $('.pagination').html('');
+                            }else{
+                                alert(language.It_failed);
+                            }
+                        }
+                    });
+                }
+            } else {
+                alert("대화상자를 선택해주세요.");
+            } 
+
         }
     });
 

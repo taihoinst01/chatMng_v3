@@ -1792,7 +1792,7 @@ router.post('/learnUtterAjax', function (req, res) {
     if (req.body['utters[]']) {
         utterArry = req.body['utters[]'];
         for (var i=0; i<(typeof utterArry ==="string" ? 1:utterArry.length); i++) {    
-            updateQueryText += "UPDATE TBL_QUERY_ANALYSIS_RESULT SET TRAIN_FLAG = 'Y' WHERE QUERY = '" + (typeof utterArry ==="string" ? utterArry:utterArry[i]) + "'; \n";
+            updateQueryText += "UPDATE TBL_QUERY_ANALYSIS_RESULT SET TRAIN_FLAG = 'Y' WHERE QUERY = '" + (typeof utterArry ==="string" ? utterArry.replace(" ",""):utterArry[i]) + "'; \n";
         }
     }
 
@@ -1803,6 +1803,12 @@ router.post('/learnUtterAjax', function (req, res) {
     selectAppIdQuery += "FROM TBL_LUIS_APP \n";
     selectAppIdQuery += "WHERE CHATBOT_ID = (SELECT CHATBOT_NUM FROM TBL_CHATBOT_APP WHERE CHATBOT_NAME='"+req.session.appName+"')\n";
 
+    var upQuery = "UPDATE TBL_QUERY_ANALYSIS_RESULT SET LUIS_ID = @luisID, LUIS_INTENT = @intetID, LUIS_INTENT_SCORE = '1', RESULT = 'H' "
+                + "WHERE QUERY = @Query";
+
+    var inCacheQuery = "INSERT INTO TBL_QUERY_INTENT(QUERY, LUIS_ID, LUIS_INTENT, DLG_ID)\n"
+                     + "VALUES(@query,@luisId, @intent, @dlgId)";
+    
     (async () => {
         try {
             let pool = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
@@ -1856,18 +1862,28 @@ router.post('/learnUtterAjax', function (req, res) {
                 if (j === ((typeof dlgId ==="string" ? 1:dlgId.length) - 1)) {
                     queryText += updateQueryText
                 }
-                result1 = await pool.request()
+
+                if(entities != "" && entities != null) {
+                    result1 = await pool.request()
                                 .input('luisId', sql.NVarChar, luisId)
                                 .input('luisIntent', sql.NVarChar, luisIntent)
                                 .input('entities', sql.NVarChar, entities)
                                 .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
                                 .query(queryText);
                 
-                result2 = await pool.request()
-                                .input('entities', sql.NVarChar, entities)
-                                .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
-                                .query(updateTblDlg);
                 
+                    result2 = await pool.request()
+                                    .input('entities', sql.NVarChar, entities)
+                                    .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
+                                    .query(updateTblDlg);
+                } else {
+                    var inCacheResult = await pool.request()
+                                            .input('query', sql.NVarChar, req.body['utters[]'].replace(" ",""))
+                                            .input('luisId', sql.NVarChar, luisId)
+                                            .input('intent', sql.NVarChar, luisIntent)
+                                            .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
+                                            .query(inCacheQuery);
+                }
             }
             
             /*
@@ -1930,6 +1946,31 @@ router.post('/learnUtterAjax', function (req, res) {
             insertUtter = req.body['utters[]'];
             for (var i=0; i<(typeof utterArry ==="string" ? 1:utterArry.length); i++) {    
                 insertUtter = (typeof utterArry ==="string" ? utterArry:utterArry[i]);
+
+                if(entities == null || entities == "") {
+
+                    var selectQueryResult = await pool.request()
+                                                    .input('Query', sql.NVarChar, insertUtter.replace(" ", ""))
+                                                    .query("SELECT QUERY FROM TBL_QUERY_ANALYSIS_RESULT WHERE QUERY = @Query");
+
+                    if(selectQueryResult.recordset.length > 0) {
+                        var upResult = await pool.request()
+                                            .input('Query', sql.NVarChar,  insertUtter.replace(" ",""))
+                                            .input('luisID', sql.NVarChar,  luisId)
+                                            .input('intetID', sql.NVarChar, luisIntent)
+                                            .query(upQuery)
+                    } else {
+                        var spResult = await pool.request()
+                                .input('Query', sql.NVarChar,  insertUtter.replace(" ",""))
+                                .input('intentID', sql.NVarChar, luisIntent)
+                                .input('entitiesIDS', sql.NVarChar, 'none')
+                                .input('intentScore', sql.NVarChar, '1')
+                                .input('luisID', sql.NVarChar, luisId)
+                                .input('result', sql.NVarChar, 'H')
+                                .input('appID', sql.NVarChar, '')
+                                .execute('sp_insertusehistory4')
+                    }
+                }
             }
 
             var publish_flag = "N";
@@ -2033,6 +2074,7 @@ router.post('/learnUtterAjax', function (req, res) {
 
                     for(var trNum = 0; trNum < traninResultGet.body.length; trNum++) {
                         if(traninResultGet.body[trNum].details.status == "Fail") {
+                            clearInterval(repeat);
                             res.send({result:false});
                         }
                         if(traninResultGet.body[trNum].details.status == "InProgress") {
@@ -2088,7 +2130,7 @@ router.post('/learnUtterAjax', function (req, res) {
 
            }
         /********************************************* */
-            console.log(result1);
+            //console.log(result1);
             //console.log(result2);
 
             /*
