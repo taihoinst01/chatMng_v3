@@ -1808,6 +1808,13 @@ router.post('/learnUtterAjax', function (req, res) {
 
     var inCacheQuery = "INSERT INTO TBL_QUERY_INTENT(QUERY, LUIS_ID, LUIS_INTENT, DLG_ID)\n"
                      + "VALUES(@query,@luisId, @intent, @dlgId)";
+
+    var selCacheQuery = "SELECT QUERY, LUIS_ID, LUIS_INTENT, DLG_ID\n"
+                      + "FROM TBL_QUERY_INTENT\n"
+                      + "WHERE QUERY = @query\n"
+                      + "AND LUIS_ID = @luisId\n"
+                      + "AND LUIS_INTENT = @intent\n"
+                      + "AND DLG_ID = @dlgID";
     
     (async () => {
         try {
@@ -1877,12 +1884,22 @@ router.post('/learnUtterAjax', function (req, res) {
                                     .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
                                     .query(updateTblDlg);
                 } else {
-                    var inCacheResult = await pool.request()
+
+                    var selCacheResult = await pool.request()
                                             .input('query', sql.NVarChar, req.body['utters[]'].replace(" ",""))
                                             .input('luisId', sql.NVarChar, luisId)
                                             .input('intent', sql.NVarChar, luisIntent)
                                             .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
-                                            .query(inCacheQuery);
+                                            .query(selCacheQuery)
+
+                    if(selCacheResult.recordset.length == 0) {
+                        var inCacheResult = await pool.request()
+                                .input('query', sql.NVarChar, req.body['utters[]'].replace(" ",""))
+                                .input('luisId', sql.NVarChar, luisId)
+                                .input('intent', sql.NVarChar, luisIntent)
+                                .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
+                                .query(inCacheQuery);
+                    }
                 }
             }
             
