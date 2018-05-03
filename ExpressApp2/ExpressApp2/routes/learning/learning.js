@@ -1893,6 +1893,17 @@ router.post('/learnUtterAjax', function (req, res) {
                                             .query(selCacheQuery)
 
                     if(selCacheResult.recordset.length == 0) {
+                        /*
+                        * entity 가 없어도 TBL_DLG_RELATION_LUIS 에는 insert
+                        * entity 가 없으면 TBL_DLG_RELATION_LUIS table 을 보지 않고 TBL_QUERY_INTENT table 에서 정보를 빼온다.
+                        * entity 가 없으니까 tbl_dlg 의 groups 를 update 할 필요는 없다.
+                        */
+                        var relationLuisResult = await pool.request()
+                                .input('luisId', sql.NVarChar, luisId)
+                                .input('luisIntent', sql.NVarChar, luisIntent)
+                                .input('entities', sql.NVarChar, entities)
+                                .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
+                                .query(queryText);
                         var inCacheResult = await pool.request()
                                 .input('query', sql.NVarChar, req.body['utters[]'].replace(" ",""))
                                 .input('luisId', sql.NVarChar, luisId)
@@ -3604,7 +3615,8 @@ router.post('/predictIntentAjax', function (req, res) {
             }
         };
 
-        //var luisRequest = endPoint + appId +'?' + querystring.stringify(queryParams);
+        //var luisRequest_ = endPoint + appId +'?' + querystring.stringify(queryParams);
+        //console.log("luisRequest_=="+luisRequest_);
         var luisRequest = syncClient.get(endPoint + appId +'?' + querystring.stringify(queryParams) , options);
         res.send(luisRequest);
         } catch (error) {
