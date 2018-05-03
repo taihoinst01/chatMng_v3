@@ -1898,6 +1898,10 @@ router.post('/learnUtterAjax', function (req, res) {
                         * entity 가 없으면 TBL_DLG_RELATION_LUIS table 을 보지 않고 TBL_QUERY_INTENT table 에서 정보를 빼온다.
                         * entity 가 없으니까 tbl_dlg 의 groups 를 update 할 필요는 없다.
                         */
+                        var regExpData = /[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"]/gi;//특수문자
+                        var query_ori_data = req.body['utters[]'];
+                        var query_data = query_ori_data.replace(regExpData, "");//특수문자 제거
+                        query_data = query_data.replace(/(\s*)/g,"");//공백제거
                         var relationLuisResult = await pool.request()
                                 .input('luisId', sql.NVarChar, luisId)
                                 .input('luisIntent', sql.NVarChar, luisIntent)
@@ -1905,7 +1909,8 @@ router.post('/learnUtterAjax', function (req, res) {
                                 .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
                                 .query(queryText);
                         var inCacheResult = await pool.request()
-                                .input('query', sql.NVarChar, req.body['utters[]'].replace(" ",""))
+                                //.input('query', sql.NVarChar, req.body['utters[]'].replace(" ",""))
+                                .input('query', sql.NVarChar, query_data)
                                 .input('luisId', sql.NVarChar, luisId)
                                 .input('intent', sql.NVarChar, luisIntent)
                                 .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[j]))
