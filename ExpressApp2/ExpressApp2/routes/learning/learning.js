@@ -2122,7 +2122,7 @@ router.post('/learnUtterAjax', function (req, res) {
                         if(traninResultGet.body[trNum].details.status == "Fail") {
                             console.log("status fail===");
                             clearInterval(repeat);
-                            res.send({result:false});
+                            return res.send({result:false});
                         }
                         if(traninResultGet.body[trNum].details.status == "InProgress") {
                             console.log("status InProgress===");
@@ -2148,7 +2148,7 @@ router.post('/learnUtterAjax', function (req, res) {
 
                             clearInterval(repeat);
 
-                            res.send({result:true});
+                            return res.send({result:true});
                         }
                     }
 
