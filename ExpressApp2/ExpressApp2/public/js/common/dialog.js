@@ -1300,6 +1300,16 @@ function createDialog(){
     var array = [];
     var exit = false;
 
+     //intent length check
+     if($('input[name=predictIntent]').val().length > 50) {
+        alert("Intent Maximum length 50 characters");
+        exit = true;
+        
+        return false;
+    }else{
+        
+    }
+
     /*
     if($('select[name=luisId]').val().trim() === "") {
         alert(language.Please_reset_the_group);

@@ -1050,6 +1050,7 @@ router.post('/deleteEntity', function (req, res) {
                 
                 for(var k = 0; k < intentCountRes.body.length; k++) {
                     //text
+                    
                     if (intentCountRes.body[k].text.trim() === delEntityDefine) {
                         useLuisAppId = luisAppId;
                         delUtterId = intentCountRes.body[k].id;
@@ -1066,7 +1067,8 @@ router.post('/deleteEntity', function (req, res) {
 
             if(appCount == false) {
                 //create luis app 
-                res.send({result:402});
+                console.log("res 402");
+                return res.send({result:402});
             }else{
                 
                 var entityListRes = syncClient.get(HOST + '/luis/api/v2.0/apps/' + useLuisAppId + '/versions/' + saveLuisVerId + '/hierarchicalentities?take=500' , options);
@@ -1092,12 +1094,14 @@ router.post('/deleteEntity', function (req, res) {
 
             if(appCount == false) {
                 //create luis app 
-                res.send({result:403});
+                console.log("res 403");
+                return res.send({result:403});
             }else{
                 //삭제
                 var delUtterRes = syncClient.del(HOST + '/luis/api/v2.0/apps/' + useLuisAppId + '/versions/' + saveLuisVerId + '/examples/' + delUtterId , options);
 
                 if (delUtterRes.statusCode > 200) {
+                    console.log("res 406");
                     res.send({result:406});
                 } else {
                     var delHierarChyChild = '';
@@ -1107,6 +1111,7 @@ router.post('/deleteEntity', function (req, res) {
                     var delUtterRes = syncClient.del(delHierarChyChild, options);
 
                     if (delUtterRes.statusCode > 200) {
+                        console.log("res 407");
                         res.send({result:407});
                     } else {
                         
@@ -1150,6 +1155,7 @@ router.post('/deleteEntity', function (req, res) {
             }
         } catch (err) {
             console.log(err);
+            console.log("res 500");
             res.send({status:500 , message:'delete Entity Error'});
         } finally {
             sql.close();
@@ -2047,6 +2053,8 @@ router.post('/learnUtterAjax', function (req, res) {
                 }
 
                 var createIntentName = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/intents' , intentOptions);
+                var temp1 = JSON.stringify(createIntentName);
+                console.log("createIntentName=="+temp1);
             }
 
             var getEntityName = syncClient.get(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/hierarchicalentities?take=500' , options);
@@ -2058,7 +2066,9 @@ router.post('/learnUtterAjax', function (req, res) {
                 "intentName" : predictIntent_luis,
                 "entityLabels" : []
             }]
-
+            /*
+            -- entity 추출하는 부분인데...
+            -- intent 등록시에 넣어야 할듯 한데 조금 아리까리 하네.
             var entities_temp = entities.split(",");
             for(var ii=0; ii<entities_temp.length; ii++){
                 for(var k = 0; k < getEntityName.body.length; k++) {
@@ -2080,11 +2090,12 @@ router.post('/learnUtterAjax', function (req, res) {
             console.log("addEntity ="+ addEntity);
             var addEntity_temp = addEntity.split("//");
             console.log("addEntity_temp ="+ addEntity_temp.length);
-                      
+                    */  
             console.log("insertUtter==="+insertUtter+"/////intentName==="+predictIntent_luis);
             //add luis utterance
             var addUtterance = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/examples' , options);
             var temp = JSON.stringify(addUtterance);
+            console.log("addUtterance=="+temp);
             //luis train
             //var trainLuis = syncClient.post(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train' , options);
             //var temp = JSON.stringify(trainLuis);
@@ -2105,17 +2116,22 @@ router.post('/learnUtterAjax', function (req, res) {
                     var count = 0;
                     var traninResultGet = syncClient.get(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train' , trainOptions);
 
+                    console.log("traninResultGet==="+traninResultGet.body.length);
+
                     for(var trNum = 0; trNum < traninResultGet.body.length; trNum++) {
                         if(traninResultGet.body[trNum].details.status == "Fail") {
+                            console.log("status fail===");
                             clearInterval(repeat);
                             res.send({result:false});
                         }
                         if(traninResultGet.body[trNum].details.status == "InProgress") {
+                            console.log("status InProgress===");
                             break;
                         }
                         count++;
 
                         if(traninResultGet.body.length == count) {
+                            console.log("status ok===");
                             var pubOption = {
                                 headers: {
                                     'Ocp-Apim-Subscription-Key': req.session.subsKey,
@@ -2748,7 +2764,8 @@ router.post('/addDialog',function(req,res){
 
                     let result4 = await pool.request()
                     .input('dlgId', sql.Int, dlgId[0].DLG_ID)
-                    .input('dialogTitle', sql.NVarChar, (array[i]["dialogTitle"].trim() == '' ? null: array[i]["dialogTitle"].trim()) )
+                    //.input('dialogTitle', sql.NVarChar, (array[i]["dialogTitle"].trim() == '' ? null: array[i]["dialogTitle"].trim()) )
+                    .input('dialogTitle', sql.NVarChar, (array[i]["dialogTitle"].trim() == '' ? '': array[i]["dialogTitle"].trim()) )
                     .input('dialogText', sql.NVarChar, (array[i]["dialogText"].trim() == '' ? null: array[i]["dialogText"].trim()) )
                     .query(inserTblDlgText);                    
                     

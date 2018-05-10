@@ -1087,6 +1087,16 @@ function createDialog(){
     var idx = $('form[name=dialogLayout]').length;
     var array = [];
     var exit = false;
+    
+    //intent length check
+    if($('input[name=predictIntent]').val().length > 50) {
+        alert("Intent Maximum length 50 characters");
+        exit = true;
+        
+        return false;
+    }else{
+        
+    }
 
     /*
     if($('select[name=luisId]').val().trim() === "") {
