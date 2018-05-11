@@ -1797,6 +1797,7 @@ router.post('/learnUtterAjax', function (req, res) {
     var utterArry;
     if (req.body['utters[]']) {
         utterArry = req.body['utters[]'];
+        utterArry = utterArry.replace("'","''");
         for (var i=0; i<(typeof utterArry ==="string" ? 1:utterArry.length); i++) {    
             updateQueryText += "UPDATE TBL_QUERY_ANALYSIS_RESULT SET TRAIN_FLAG = 'Y' WHERE QUERY = '" + (typeof utterArry ==="string" ? utterArry.replace(" ",""):utterArry[i]) + "'; \n";
         }

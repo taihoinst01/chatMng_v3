@@ -80,7 +80,11 @@ router.get('/', function (req, res) {
 
 
                         //여기서부터 동기화 입니다.
-                        if(userId == 'admin') {
+                        /*
+                        루이스 아이디가 틀릴때는 문제가 될수가 있다
+                        */
+                       if(userId == 'adminSync') {
+                        //if(userId == 'admin') {
 
                             await dbConnect.getConnection(sql).then(pool => {
                                 return pool.request().query( "SELECT SUBSC_KEY, APP_NAME, APP_ID FROM TBL_LUIS_APP;" ) 
