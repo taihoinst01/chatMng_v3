@@ -310,8 +310,10 @@ router.post('/admin/addChatBotApps', function (req, res){
 
     (async () => {
         try {
-            var insertChatQuery = "INSERT INTO TBL_CHATBOT_APP(CHATBOT_NUM,CHATBOT_NAME,CULTURE,DESCRIPTION,APP_COLOR, LUIS_SUBSCRIPTION) ";
-            insertChatQuery += "VALUES((SELECT ISNULL(MAX(CHATBOT_NUM),0) FROM TBL_CHATBOT_APP)+1, @chatName, @culture, @chatDes, @chatColor, @luisSubscription)";
+            var insertChatQuery_old = "INSERT INTO TBL_CHATBOT_APP(CHATBOT_NUM,CHATBOT_NAME,CULTURE,DESCRIPTION,APP_COLOR, LUIS_SUBSCRIPTION) ";
+            insertChatQuery_old += "VALUES((SELECT ISNULL(MAX(CHATBOT_NUM),0) FROM TBL_CHATBOT_APP)+1, @chatName, @culture, @chatDes, @chatColor, @luisSubscription)";
+            var insertChatQuery = "INSERT INTO TBL_CHATBOT_APP(CHATBOT_NUM,CHATBOT_NAME,CULTURE,DESCRIPTION,APP_COLOR) ";
+            insertChatQuery += "VALUES((SELECT ISNULL(MAX(CHATBOT_NUM),0) FROM TBL_CHATBOT_APP)+1, @chatName, @culture, @chatDes, @chatColor)";
 
             var insertDbQuery = "INSERT INTO TBL_DB_CONFIG(USER_NAME,PASSWORD,SERVER,DATABASE_NAME,APP_NAME,APP_ID) ";
             insertDbQuery += "VALUES(@dbId, @dbPassword, @dbUrl, @dbName, @chatName, @chatName)";
@@ -322,7 +324,7 @@ router.post('/admin/addChatBotApps', function (req, res){
                 .input('culture', sql.NVarChar, culture)
                 .input('chatDes', sql.NVarChar, chatDes)
                 .input('chatColor', sql.NVarChar, chatColor)
-                .input('luisSubscription', sql.NVarChar, luisSubscription)
+                //.input('luisSubscription', sql.NVarChar, luisSubscription)
                 .query(insertChatQuery);
 
             let insertDb = await pool.request()
