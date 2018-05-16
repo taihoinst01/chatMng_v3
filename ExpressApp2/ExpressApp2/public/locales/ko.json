@@ -76,6 +76,7 @@
 	"Input sentence": "입력 문장",
 	"Added": "추가하였습니다.",
 	"It_failed": "실패하였습니다.",
+	"Learned": "이미 학습한 문장입니다.",
 	"NoEntity": "엔티티 없음",
 	"Description_must_be_entered": "설명을 입력해야 합니다.",
 	"You_must_enter_a_Dialog_Title": "대화상자 제목을 입력해야 합니다.",

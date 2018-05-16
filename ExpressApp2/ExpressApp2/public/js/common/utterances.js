@@ -489,19 +489,35 @@ $(document).ready(function(){
                             $("#loadingBar").css("display","none");      
                         },
                         success: function(result) {
-                            if(result['result'] == true) {
-                                alert(language.Added);
-                                
+                            if(result['result'] == "learned") {
+                                alert(language.Learned);
                                 $('input[name=tableAllChk]').parent().iCheck('uncheck');
 
                                 $('.recommendTbl tbody').html('');
                                 $('#dlgViewDiv').html('');
 
                                 $('input[name=dlgBoxChk]').parent().iCheck('uncheck');
+
+                                $('select[name=predictIntent] :first-child').nextAll().remove();
                                 $('.pagination').html('');
                             }else{
-                                alert(language.It_failed);
+                                if(result['result'] == true) {
+                                    alert(language.Added);
+                                    
+                                    $('input[name=tableAllChk]').parent().iCheck('uncheck');
+    
+                                    $('.recommendTbl tbody').html('');
+                                    $('#dlgViewDiv').html('');
+    
+                                    $('input[name=dlgBoxChk]').parent().iCheck('uncheck');
+
+                                    $('select[name=predictIntent] :first-child').nextAll().remove();
+                                    $('.pagination').html('');
+                                }else{
+                                    alert(language.It_failed);
+                                }
                             }
+                            
                         }
                     });
                 }

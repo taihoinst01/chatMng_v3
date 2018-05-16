@@ -82,6 +82,7 @@ router.get('/', function (req, res) {
                         //여기서부터 동기화 입니다.
                         /*
                         루이스 아이디가 틀릴때는 문제가 될수가 있다
+                        임시로 동기화 중지
                         */
                        if(userId == 'adminSync') {
                         //if(userId == 'admin') {
@@ -126,6 +127,7 @@ router.get('/', function (req, res) {
                                                         appList.splice(j,1);
                                                     } else {
                                                         //기존 앱이 삭제되고 같은 이름의 새 앱이 생긴 경우
+                                                        console.log("delete1=====");
                                                         deleteAppStr += "DELETE FROM TBL_LUIS_APP WHERE APP_NAME = '" + rows[i].APP_NAME + "' AND APP_ID = '" + rows[i].APP_ID + "'; \n";
                                                         deleteAppStr += "DELETE FROM TBL_CHAT_RELATION_APP WHERE APP_ID = '" + rows[i].APP_ID + "'; \n";
                                                         
@@ -138,6 +140,7 @@ router.get('/', function (req, res) {
                                             }
 
                                             if (chkDelApp) {
+                                                console.log("delete2=====");
                                                 deleteAppStr += "DELETE FROM TBL_LUIS_APP WHERE APP_NAME = '" + rows[i].APP_NAME + "' AND APP_ID = '" + rows[i].APP_ID + "'; \n";
                                                 deleteAppStr += "DELETE FROM TBL_CHAT_RELATION_APP WHERE APP_ID = '" + rows[i].APP_ID + "'; \n";
                                                 //chatConfQry += "DELETE FROM TBL_CHATBOT_CONF CNF_NM = '" + rows[i].APP_NAME + "'; \n";

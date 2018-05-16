@@ -73,6 +73,7 @@
 	"Input sentence": "INPUT SENTENCE",
 	"Added": "ADDED",
 	"It_failed": "IT FAILED",
+	"Learned": "It's already learned.",
 	"NoEntity": "NO ENTITY",
 	"Description_must_be_entered": "Description must be entered",
 	"You_must_enter_a_Dialog_Title": "You must enter a Dialog Title",

@@ -1822,12 +1822,15 @@ router.post('/learnUtterAjax', function (req, res) {
                       + "AND LUIS_ID = @luisId\n"
                       + "AND LUIS_INTENT = @intent\n"
                       + "AND DLG_ID = @dlgID";
+
+    var checkQuery = "SELECT RELATION_ID FROM TBL_DLG_RELATION_LUIS WHERE LUIS_INTENT = @luisIntent AND DLG_ID = @dlgId AND LUIS_ID = @luisId";
     
     (async () => {
         try {
             let pool = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
             let result1;
             let result2;
+            let checkResult;
             /*
             if(typeof dlgId == "string") {
                 result1 = await pool.request()
@@ -1869,7 +1872,23 @@ router.post('/learnUtterAjax', function (req, res) {
                 }
             }
             */
+           /*
+           * 이미 학습되어서 디비에 들어간 내용을 다시 학습시키는 것을 방지함.
+           * */
+           for(var jjj = 0 ; jjj < (typeof dlgId ==="string" ? 1:dlgId.length); jjj++){
+            checkResult = await pool.request()
+                .input('luisId', sql.NVarChar, luisId)
+                .input('luisIntent', sql.NVarChar, luisIntent)
+                .input('dlgId', sql.NVarChar, (typeof dlgId ==="string" ? dlgId:dlgId[jjj]))
+                .query(checkQuery);
 
+                if(checkResult.recordset.length > 0) {
+                    return res.send({result:"learned"});
+                }else{
+                    //nothing
+                }
+           }
+           
 
 
             for(var j = 0 ; j < (typeof dlgId ==="string" ? 1:dlgId.length); j++){
@@ -1967,15 +1986,15 @@ router.post('/learnUtterAjax', function (req, res) {
            let selectAppId1;
 
            let pool1 = await dbConnect.getConnection(sql);
-           //let pool1 = await dbConnect.getAppConnection(sql, req.session.appName, req.session.dbValue);
+           
            selectAppId1 = await pool1.request()
                .query(selectAppIdQuery);
 
-           //appId = "e2693629-40e8-4769-9a38-daf5e6b56d4f";
+           
            for(var i = 0; i < selectAppId1.recordset.length; i++) {
                 appId = selectAppId1.recordset[i].APP_ID;
             }
-            //console.log("appId======insertUtter========= ="+ appId);
+            
             var options = {
                 headers: {
                     'Ocp-Apim-Subscription-Key': req.session.subsKey
@@ -2117,22 +2136,22 @@ router.post('/learnUtterAjax', function (req, res) {
                     var count = 0;
                     var traninResultGet = syncClient.get(HOST + '/luis/api/v2.0/apps/' + appId + '/versions/0.1/train' , trainOptions);
 
-                    //console.log("traninResultGet==="+traninResultGet.body.length);
+                    console.log("traninResultGet==="+traninResultGet.body.length);
 
                     for(var trNum = 0; trNum < traninResultGet.body.length; trNum++) {
                         if(traninResultGet.body[trNum].details.status == "Fail") {
-                            //console.log("status fail===");
+                            console.log("status fail===");
                             clearInterval(repeat);
                             return res.send({result:false});
                         }
                         if(traninResultGet.body[trNum].details.status == "InProgress") {
-                            //console.log("status InProgress===");
+                            console.log("status InProgress===");
                             break;
                         }
                         count++;
 
                         if(traninResultGet.body.length == count) {
-                            //console.log("status ok===");
+                            console.log("status ok===");
                             var pubOption = {
                                 headers: {
                                     'Ocp-Apim-Subscription-Key': req.session.subsKey,
@@ -3607,6 +3626,7 @@ router.post('/predictIntentAjax', function (req, res) {
     var selectAppIdQuery = "SELECT CHATBOT_ID, APP_ID, VERSION, APP_NAME,CULTURE, SUBSC_KEY \n";
     selectAppIdQuery += "FROM TBL_LUIS_APP \n";
     selectAppIdQuery += "WHERE CHATBOT_ID = (SELECT CHATBOT_NUM FROM TBL_CHATBOT_APP WHERE CHATBOT_NAME='"+req.session.appName+"')\n";
+    console.log("selectAppIdQuery=="+selectAppIdQuery);
 
     (async () => {
         try {
